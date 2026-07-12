@@ -26,7 +26,7 @@ Screenshots use representative demo conversations and contain no production data
 
 | Login | Chat workspace |
 | --- | --- |
-| ![RelayDesk login](docs/images/login-en.png) | ![RelayDesk chat workspace](docs/images/chat-zh.png) |
+| ![RelayDesk login](docs/images/login-en.png) | ![RelayDesk chat workspace](docs/images/chat-en.png) |
 
 ## Start Locally
 
