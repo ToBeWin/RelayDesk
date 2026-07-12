@@ -798,6 +798,12 @@ a {
   .chat-live.content-workspace-disabled.conversation-rail-collapsed.content-workbench-collapsed {
     grid-template-columns: 0 minmax(0, 1fr) !important;
   }
+  .chat-live.content-workspace-disabled.conversation-rail-collapsed .chat-canvas {
+    grid-column: 2;
+  }
+  .chat-live.content-workspace-disabled.conversation-rail-collapsed .conversation-rail {
+    display: none !important;
+  }
 }
 
 /* This must remain last: the open-source core intentionally has no inspector column. */
