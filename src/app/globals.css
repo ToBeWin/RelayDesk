@@ -2734,6 +2734,60 @@ a {
 .chat-live.chat-core-layout.conversation-rail-collapsed > .conversation-rail {
   display: none;
 }
+
+/* Settings uses task-oriented tabs so administrative tools do not become one
+   long waterfall. Existing cards stay mounted, preserving in-progress forms. */
+.settings-tabs {
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 6px;
+  margin: 26px 0 24px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+}
+.settings-tabs button {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--muted);
+  cursor: pointer;
+  flex: 0 0 auto;
+  font: 600 13px/1 "Geist", sans-serif;
+  padding: 9px 12px;
+}
+.settings-tabs button:hover { background: var(--surface-high); color: var(--ink); }
+.settings-tabs button.active { background: #e7edff; border-color: #c9d6ff; color: var(--primary); }
+.settings-page:has(.settings-tabs button.active:nth-child(2)) > .settings-grid,
+.settings-page:has(.settings-tabs button.active:nth-child(2)) > .bootstrap-guide,
+.settings-page:has(.settings-tabs button.active:nth-child(2)) > .settings-section-heading,
+.settings-page:has(.settings-tabs button.active:nth-child(2)) > .host-grid,
+.settings-page:has(.settings-tabs button.active:nth-child(2)) > .local-profile-card,
+.settings-page:has(.settings-tabs button.active:nth-child(2)) > .agent-fleet-list,
+.settings-page:has(.settings-tabs button.active:nth-child(2)) > .discovery-card,
+.settings-page:has(.settings-tabs button.active:nth-child(2)) > .admin-provision-grid,
+.settings-page:has(.settings-tabs button.active:nth-child(2)) > .audit-panel { display: none; }
+.settings-page:has(.settings-tabs button.active:nth-child(3)) > .settings-grid,
+.settings-page:has(.settings-tabs button.active:nth-child(3)) > .storage-settings-card,
+.settings-page:has(.settings-tabs button.active:nth-child(3)) > .settings-section-heading,
+.settings-page:has(.settings-tabs button.active:nth-child(3)) > .host-grid,
+.settings-page:has(.settings-tabs button.active:nth-child(3)) > .local-profile-card,
+.settings-page:has(.settings-tabs button.active:nth-child(3)) > .agent-fleet-list,
+.settings-page:has(.settings-tabs button.active:nth-child(3)) > .discovery-card,
+.settings-page:has(.settings-tabs button.active:nth-child(3)) > .admin-provision-grid,
+.settings-page:has(.settings-tabs button.active:nth-child(3)) > .audit-panel { display: none; }
+.settings-page:has(.settings-tabs button.active:nth-child(4)) > .settings-grid,
+.settings-page:has(.settings-tabs button.active:nth-child(4)) > .storage-settings-card,
+.settings-page:has(.settings-tabs button.active:nth-child(4)) > .bootstrap-guide,
+.settings-page:has(.settings-tabs button.active:nth-child(4)) > .audit-panel { display: none; }
+.settings-page:has(.settings-tabs button.active:nth-child(5)) > .settings-grid,
+.settings-page:has(.settings-tabs button.active:nth-child(5)) > .storage-settings-card,
+.settings-page:has(.settings-tabs button.active:nth-child(5)) > .bootstrap-guide,
+.settings-page:has(.settings-tabs button.active:nth-child(5)) > .settings-section-heading,
+.settings-page:has(.settings-tabs button.active:nth-child(5)) > .host-grid,
+.settings-page:has(.settings-tabs button.active:nth-child(5)) > .local-profile-card,
+.settings-page:has(.settings-tabs button.active:nth-child(5)) > .agent-fleet-list,
+.settings-page:has(.settings-tabs button.active:nth-child(5)) > .discovery-card,
+.settings-page:has(.settings-tabs button.active:nth-child(5)) > .admin-provision-grid { display: none; }
 @media (max-width: 1100px) {
   .chat-live.chat-core-layout > .conversation-rail {
     display: none;

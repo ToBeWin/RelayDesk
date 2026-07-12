@@ -95,12 +95,15 @@ test("operator can chat, persist history, and manage private chat sessions", asy
   await page.getByRole("button", { name: "确认删除" }).click();
   await expect(page.locator("button.conversation-empty")).toBeVisible();
   await page.goto("/settings");
+  await page.getByRole("tab", { name: "Agent 管理" }).click();
   await page.getByPlaceholder("电脑名称，例如：内容工作站 01").fill("E2E Hermes 主机");
   await page.getByPlaceholder("内网 IP，例如：192.168.1.20").fill("192.168.50.20");
   await page.getByPlaceholder("位置或用途（可选）").fill("浏览器自动化验收");
   await page.getByRole("button", { name: "登记主机" }).click();
   await expect(page.locator(".host-grid")).toContainText("E2E Hermes 主机");
+  await page.getByRole("tab", { name: "安全审计" }).click();
   await expect(page.locator(".audit-list")).toContainText("agent_host.created");
+  await page.getByRole("tab", { name: "概览与备份" }).click();
   await page.getByRole("button", { name: "立即备份" }).click();
   await expect(page.getByLabel("系统通知").getByText(/备份完成：\d+ 个文件已归档。/)).toBeVisible();
 
