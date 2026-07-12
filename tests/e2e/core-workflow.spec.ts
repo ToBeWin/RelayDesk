@@ -10,6 +10,7 @@ test("login page localizes the product story and form together", async ({ page }
   await expect(page.getByRole("heading", { name: "进入工作台" })).toBeVisible();
   await expect(page.getByText("需求评审会议纪要.md")).toBeVisible();
   await expect(page.getByLabel("成员姓名")).toBeVisible();
+  if (process.env.RELAYDESK_CAPTURE_README === "1") await page.screenshot({ path: "docs/images/login-zh.png", fullPage: true });
 });
 
 test("operator can chat, persist history, save content, and search it", async ({ page }) => {
@@ -33,7 +34,6 @@ test("operator can chat, persist history, save content, and search it", async ({
   expect(historyRail).toBeTruthy();
   expect(chatCanvas).toBeTruthy();
   expect(historyRail!.x).toBeLessThan(chatCanvas!.x);
-  if (process.env.RELAYDESK_CAPTURE_README === "1") await page.screenshot({ path: "docs/images/chat-zh.png", fullPage: true });
   await page.getByRole("button", { name: "折叠侧边栏" }).click();
   await expect(page.locator(".sidebar")).toHaveClass(/collapsed/);
   await page.getByRole("button", { name: "展开侧边栏" }).click();
@@ -51,6 +51,7 @@ test("operator can chat, persist history, save content, and search it", async ({
   await composer.fill("生成一条 RelayDesk E2E 验收内容");
   await composer.press("Enter");
   await expect(page.getByText("Mock Runtime 已收到：生成一条 RelayDesk E2E 验收内容")).toBeVisible();
+  if (process.env.RELAYDESK_CAPTURE_README === "1") await page.screenshot({ path: "docs/images/chat-zh.png", fullPage: true });
 
   await page.reload();
   await expect(page.getByText("Mock Runtime 已收到：生成一条 RelayDesk E2E 验收内容")).toBeVisible();
