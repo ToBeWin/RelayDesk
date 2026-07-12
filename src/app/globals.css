@@ -788,49 +788,6 @@ a {
   }
 }
 
-/* Must follow every legacy Stitch layout rule: the public core has no third pane. */
-@media (min-width: 1101px) {
-  .chat-live.content-workspace-disabled,
-  .chat-live.content-workspace-disabled.content-workbench-collapsed {
-    grid-template-columns: 210px minmax(0, 1fr) !important;
-  }
-  .chat-live.content-workspace-disabled.conversation-rail-collapsed,
-  .chat-live.content-workspace-disabled.conversation-rail-collapsed.content-workbench-collapsed {
-    grid-template-columns: 0 minmax(0, 1fr) !important;
-  }
-  .chat-live.content-workspace-disabled.conversation-rail-collapsed .chat-canvas {
-    grid-column: 2;
-  }
-  .chat-live.content-workspace-disabled.conversation-rail-collapsed .conversation-rail {
-    display: none !important;
-  }
-}
-
-/* This must remain last: the open-source core intentionally has no inspector column. */
-@media (min-width: 1101px) {
-  .chat-live.content-workspace-disabled,
-  .chat-live.content-workspace-disabled.content-workbench-collapsed {
-    grid-template-columns: 210px minmax(0, 1fr) !important;
-  }
-  .chat-live.content-workspace-disabled.conversation-rail-collapsed,
-  .chat-live.content-workspace-disabled.conversation-rail-collapsed.content-workbench-collapsed {
-    grid-template-columns: 0 minmax(0, 1fr) !important;
-  }
-}
-
-/* Core RelayDesk has no inspector rail. This must come after legacy desktop
-   grid rules so a persisted inspector-collapse preference cannot compress chat. */
-@media (min-width: 1101px) {
-  .chat-live.content-workspace-disabled,
-  .chat-live.content-workspace-disabled.content-workbench-collapsed {
-    grid-template-columns: 210px minmax(0, 1fr) !important;
-  }
-  .chat-live.content-workspace-disabled.conversation-rail-collapsed,
-  .chat-live.content-workspace-disabled.conversation-rail-collapsed.content-workbench-collapsed {
-    grid-template-columns: 0 minmax(0, 1fr) !important;
-  }
-}
-
 /* Independent chat panels can be collapsed without changing the main app navigation. */
 .rail-heading-actions,
 .utility-header-actions {
@@ -2928,38 +2885,30 @@ a {
 @media (max-width:900px) { .discovery-form { grid-template-columns:1fr 100px 1fr; }.discovery-form input[name="apiKey"] { grid-column:1 / 3; } }
 @media (max-width:600px) { .discovery-form { grid-template-columns:1fr; }.discovery-form input[name="apiKey"] { grid-column:auto; } }
 
-/* Final override: RelayDesk core has two columns only, including at desktop widths. */
-@media (min-width: 1101px) {
-  .chat-live.content-workspace-disabled,
-  .chat-live.content-workspace-disabled.content-workbench-collapsed {
-    grid-template-columns: 210px minmax(0, 1fr) !important;
-  }
-  .chat-live.content-workspace-disabled.conversation-rail-collapsed,
-  .chat-live.content-workspace-disabled.conversation-rail-collapsed.content-workbench-collapsed {
-    grid-template-columns: 0 minmax(0, 1fr) !important;
-  }
+/* RelayDesk core is a true two-pane layout. Flex avoids grid auto-placement
+   changing child columns when the conversation rail is removed. */
+.chat-live.content-workspace-disabled {
+  display: flex;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
 }
-
-/* Final desktop layout. The public core has no inspector column. */
-@media (min-width: 1400px) {
-  .chat-live:not(.content-workspace-disabled) {
-    grid-template-columns: 210px minmax(0, 1fr) 360px;
-    grid-template-rows: minmax(0, 1fr);
-  }
-  .chat-live.content-workspace-disabled,
-  .chat-live.content-workspace-disabled.content-workbench-collapsed {
-    grid-template-columns: 210px minmax(0, 1fr) !important;
-    grid-template-rows: minmax(0, 1fr);
-  }
-  .chat-live.content-workspace-disabled.conversation-rail-collapsed,
-  .chat-live.content-workspace-disabled.conversation-rail-collapsed.content-workbench-collapsed {
-    grid-template-columns: 0 minmax(0, 1fr) !important;
-  }
-  .chat-live > * {
-    min-height: 0;
-    min-width: 0;
-  }
-  .conversation-rail {
-    display: block;
+.chat-live.content-workspace-disabled > .conversation-rail {
+  display: block;
+  flex: 0 0 210px;
+  min-width: 0;
+}
+.chat-live.content-workspace-disabled > .chat-canvas {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  width: auto;
+}
+.chat-live.content-workspace-disabled.conversation-rail-collapsed > .conversation-rail {
+  display: none;
+}
+@media (max-width: 1100px) {
+  .chat-live.content-workspace-disabled > .conversation-rail {
+    display: none;
   }
 }
