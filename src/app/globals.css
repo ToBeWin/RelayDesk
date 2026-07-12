@@ -788,6 +788,19 @@ a {
   }
 }
 
+/* Core RelayDesk has no inspector rail. This must come after legacy desktop
+   grid rules so a persisted inspector-collapse preference cannot compress chat. */
+@media (min-width: 1101px) {
+  .chat-live.content-workspace-disabled,
+  .chat-live.content-workspace-disabled.content-workbench-collapsed {
+    grid-template-columns: 210px minmax(0, 1fr) !important;
+  }
+  .chat-live.content-workspace-disabled.conversation-rail-collapsed,
+  .chat-live.content-workspace-disabled.conversation-rail-collapsed.content-workbench-collapsed {
+    grid-template-columns: 0 minmax(0, 1fr) !important;
+  }
+}
+
 /* Independent chat panels can be collapsed without changing the main app navigation. */
 .rail-heading-actions,
 .utility-header-actions {
