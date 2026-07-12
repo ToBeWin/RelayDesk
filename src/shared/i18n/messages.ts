@@ -41,6 +41,21 @@ export function t(locale: Locale, key: MessageKey) {
   return systemMessages[locale][key];
 }
 
+export const memberMessages = {
+  en: {
+    access: "Access", memberAccess: "Member access", accessDenied: "Only administrators can view and manage member access.", membersAgents: "Members & Agents", memberAgentAccess: "Member and Agent access", memberAccessDescription: "Members sign in with their own password. Revoking access immediately prevents new chats, uploads, and history access.", memberName: "Member name", initialPassword: "Initial password (8+ characters)", addMember: "Add member", creating: "Creating", working: "Working", disable: "Disable", enable: "Enable", member: "Member", administrator: "Administrator", accountCanSignIn: "Account can sign in", accountDisabled: "Account is disabled", passwordSet: "Personal password set", passwordNotSet: "Password not set", dedicated: "Dedicated", shared: "Shared", saveAccess: "Save Agent access", saving: "Saving", startChats: "Start chats", sendFiles: "Send files", viewHistory: "View history", loadFailed: "Could not load members and Agents.", memberCreated: "Member created. You can now assign Agents.", memberCreateFailed: "Could not create member.", memberNetworkError: "Network error. Check the service connection and try again.", accessSaved: "Agent access saved.", accessSaveFailed: "Could not save access.", accessNetworkError: "Network error. Access was not saved. Please try again.", memberDisabled: "Member disabled.", memberEnabled: "Member enabled.", memberUpdateFailed: "Could not update member.", memberStatusNetworkError: "Network error. Member status was not updated. Please try again.",
+  },
+  "zh-CN": {
+    access: "访问权限", memberAccess: "成员授权", accessDenied: "只有管理员可以查看和修改成员授权。", membersAgents: "成员与 Agent", memberAgentAccess: "成员与 Agent 授权", memberAccessDescription: "员工使用个人密码登录；权限撤销后立即停止新的聊天、上传和历史访问。", memberName: "员工姓名", initialPassword: "初始密码（至少 8 位）", addMember: "新增成员", creating: "正在创建", working: "正在处理", disable: "停用", enable: "启用", member: "成员", administrator: "管理员", accountCanSignIn: "账号可登录", accountDisabled: "账号已停用", passwordSet: "个人密码已设置", passwordNotSet: "等待设置密码", dedicated: "独占", shared: "共享", saveAccess: "保存 Agent 授权", saving: "正在保存", startChats: "发起私聊", sendFiles: "发送文件", viewHistory: "查看历史", loadFailed: "成员与 Agent 数据加载失败。", memberCreated: "成员已创建，请继续分配 Agent。", memberCreateFailed: "成员创建失败", memberNetworkError: "网络异常，成员未创建。请检查服务连接后重试。", accessSaved: "Agent 授权已保存。", accessSaveFailed: "授权保存失败", accessNetworkError: "网络异常，授权未保存。请稍后重试。", memberDisabled: "成员已停用。", memberEnabled: "成员已启用。", memberUpdateFailed: "成员更新失败", memberStatusNetworkError: "网络异常，成员状态未更新。请稍后重试。",
+  },
+} as const;
+
+export type MemberMessageKey = keyof typeof memberMessages.en;
+
+export function memberT(locale: Locale, key: MemberMessageKey) {
+  return memberMessages[locale][key];
+}
+
 const runtimeErrorMessageKeys = {
   SESSION_NOT_FOUND: "sessionNotFound",
   CONVERSATION_NOT_FOUND: "conversationNotFound",
