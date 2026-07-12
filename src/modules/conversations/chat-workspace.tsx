@@ -868,7 +868,7 @@ export function ChatWorkspace() {
                     <div className="message-markdown">
                       <ReactMarkdown rehypePlugins={[rehypeSanitize]}>
                         {redactSensitiveDisplayText(
-                          message.contentText || "正在思考…",
+                          message.contentText || l("正在思考…", "Thinking…"),
                         )}
                       </ReactMarkdown>
                     </div>
