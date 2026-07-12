@@ -2898,6 +2898,18 @@ a {
 @media (max-width:900px) { .discovery-form { grid-template-columns:1fr 100px 1fr; }.discovery-form input[name="apiKey"] { grid-column:1 / 3; } }
 @media (max-width:600px) { .discovery-form { grid-template-columns:1fr; }.discovery-form input[name="apiKey"] { grid-column:auto; } }
 
+/* Final override: RelayDesk core has two columns only, including at desktop widths. */
+@media (min-width: 1101px) {
+  .chat-live.content-workspace-disabled,
+  .chat-live.content-workspace-disabled.content-workbench-collapsed {
+    grid-template-columns: 210px minmax(0, 1fr) !important;
+  }
+  .chat-live.content-workspace-disabled.conversation-rail-collapsed,
+  .chat-live.content-workspace-disabled.conversation-rail-collapsed.content-workbench-collapsed {
+    grid-template-columns: 0 minmax(0, 1fr) !important;
+  }
+}
+
 /* Final desktop grid rules. Keep the three direct children on one row: history, chat, inspector. */
 @media (min-width: 1400px) {
   .chat-live {
