@@ -21,6 +21,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "pnpm build && playwright test",
+    "test:hermes": "RELAYDESK_RUN_REAL_HERMES_TESTS=1 pnpm vitest run tests/integration/hermes-real.test.ts",
+    "verify:fresh-install": "tsx scripts/verify-fresh-install.ts",
+    "verify:backup-restore": "tsx scripts/verify-backup-restore.ts",
+    "verify:docker": "tsx scripts/verify-docker.ts",
     "verify:release": "pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e",
     "restore": "tsx scripts/restore-backup.ts"
   },

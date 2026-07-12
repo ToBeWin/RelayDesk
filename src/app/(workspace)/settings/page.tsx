@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useEffect, useEffectEvent, useState } from "react";
 import { Archive, Bot, CheckCircle2, Circle, Database, HardDrive, Plus, RefreshCw, Server, ServerCog, UsersRound } from "lucide-react";
 import { ConfirmDialog } from "@/shared/components/confirm-dialog";
 import { useToast } from "@/shared/components/toast-provider";
@@ -52,7 +52,8 @@ export default function SettingsPage() {
     const checks = await Promise.all(visible.filter((agent) => agent.enabled).map(async (agent) => { const response = await fetch(`/api/agents/${agent.id}/health`); return [agent.id, response.ok ? await response.json() : { status: "offline", message: l("健康检查失败", "Health check failed") }] as const; }));
     setAgentHealth(Object.fromEntries(checks));
   }
-  useEffect(() => { const timer = window.setTimeout(() => void load(), 0); return () => window.clearTimeout(timer); }, []);
+  const loadSettings = useEffectEvent(() => { void load(); });
+  useEffect(() => { const timer = window.setTimeout(loadSettings, 0); return () => window.clearTimeout(timer); }, []);
 
   async function backup() { setBusy(true); setMessage(""); const response = await fetch("/api/backups", { method: "POST" }); const data = await response.json(); setBusy(false); report(response.ok ? l(`备份完成：${data.manifest.files.length} 个文件已归档。`, `Backup complete: ${data.manifest.files.length} files archived.`) : data.message ?? l("备份失败", "Backup failed"), response.ok ? "success" : "error"); }
   async function saveStorageSettings(event: FormEvent<HTMLFormElement>) { event.preventDefault(); setBusy(true); const values = Object.fromEntries(new FormData(event.currentTarget)); const response = await fetch("/api/settings/storage", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(values) }); const data = await response.json(); setBusy(false); if (!response.ok) return report(data.message ?? l("存储设置保存失败", "Could not save storage settings"), "error"); setStorageSettings({ ...storageSettings!, ...data }); report(l("存储位置已保存。请完成数据迁移后重启 RelayDesk 使新路径生效。", "Storage location saved. Complete migration, then restart RelayDesk for the new path to take effect."), "success"); }

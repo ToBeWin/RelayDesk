@@ -43,7 +43,7 @@ import { redactSensitiveDisplayText } from "@/shared/utils/redact-sensitive-disp
 import { ConfirmDialog, TextPromptDialog } from "@/shared/components/confirm-dialog";
 import { useToast } from "@/shared/components/toast-provider";
 import { useLocale } from "@/shared/i18n/locale-provider";
-import { t } from "@/shared/i18n/messages";
+import { formatSystemError, t } from "@/shared/i18n/messages";
 
 type StreamEvent = {
   type: string;
@@ -75,7 +75,7 @@ export function ChatWorkspace() {
   const [attachments, setAttachments] = useState<PendingAsset[]>([]);
   const [running, setRunning] = useState(false);
   const [syncing, setSyncing] = useState(false);
-  const [runtimeName, setRuntimeName] = useState("Checking Runtime");
+  const [runtimeName, setRuntimeName] = useState("");
   const [runtimeAcceptsAttachments, setRuntimeAcceptsAttachments] =
     useState(false);
   const [agents, setAgents] = useState<AgentInstance[]>([]);
@@ -97,13 +97,6 @@ export function ChatWorkspace() {
   const { notify } = useToast();
   const { locale } = useLocale();
   const l = (zh: string, en: string) => (locale === "zh-CN" ? zh : en);
-  const localizeSyncError = (message: string) => {
-    if (locale === "zh-CN") return message;
-    if (message.includes("未找到这个会话")) return "Hermes could not find this chat. Your RelayDesk history has been kept.";
-    if (message.includes("暂时不可用")) return "Hermes is temporarily unavailable. Your RelayDesk history has been kept; try syncing again later.";
-    if (message.includes("授权已失效")) return "Hermes authorization has expired. Ask an administrator to check the agent key.";
-    return message;
-  };
   const newConversationRequestedRef = useRef(false);
   const onNewConversationRequested = useEffectEvent(() => {
     void createConversation();
@@ -141,7 +134,7 @@ export function ChatWorkspace() {
   });
   useEffect(() => {
     if (conversationId) onConversationSelected(conversationId);
-  }, [conversationId, notify]);
+  }, [conversationId, locale, notify]);
   useEffect(() => {
     if (
       !conversationId ||
@@ -196,24 +189,24 @@ export function ChatWorkspace() {
       if (!response.ok) return;
       const result = await response.json() as { delivered?: number };
       if (!result.delivered) return;
-      notify(`收到 ${result.delivered} 条 Hermes 定时任务提醒`, "info");
-      if (typeof Notification !== "undefined" && Notification.permission === "granted") new Notification("RelayDesk 定时任务提醒", { body: "Hermes 有新的定时任务结果，请查看当前会话。" });
+      notify(t(locale, "reminderReceived").replace("{count}", String(result.delivered)), "info");
+      if (typeof Notification !== "undefined" && Notification.permission === "granted") new Notification(t(locale, "reminderNotificationTitle"), { body: t(locale, "reminderNotificationBody") });
       if (conversationId) { await loadMessages(conversationId); await loadConversations(); }
     };
     void syncReminders();
     const timer = window.setInterval(() => void syncReminders(), 30_000);
     return () => window.clearInterval(timer);
-  }, [conversationId, notify]);
+  }, [conversationId, locale, notify]);
 
   async function loadRuntimeHealth() {
     const response = await fetch("/api/health");
     const health = response.ok ? await response.json() : null;
     setRuntimeName(
       health?.runtime?.type === "hermes"
-        ? l("Hermes Agent 已连接", "Hermes Agent connected")
+        ? t(locale, "hermesConnected")
         : health?.runtime?.type === "mock"
-          ? l("Mock Runtime 已连接", "Mock Runtime connected")
-          : l("Runtime 未连接", "Runtime disconnected"),
+          ? t(locale, "mockConnected")
+          : t(locale, "runtimeDisconnected"),
     );
     setRuntimeAcceptsAttachments(
       Boolean(health?.runtime?.capabilities?.attachments),
@@ -258,8 +251,8 @@ export function ChatWorkspace() {
     setReminderBusy(true); const form = new FormData(event.currentTarget);
     const response = await fetch("/api/reminders", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ conversationId, name: form.get("name"), schedule: form.get("schedule"), prompt: form.get("prompt") }) });
     const result = await response.json(); setReminderBusy(false);
-    if (!response.ok) return notify(result.message ?? "创建定时任务失败", "error");
-    setReminderDialogOpen(false); notify("Hermes 定时任务已创建，到点后将回到这条私聊。", "success");
+    if (!response.ok) return notify(result.message ?? t(locale, "reminderFailed"), "error");
+    setReminderDialogOpen(false); notify(t(locale, "reminderCreated"), "success");
   }
   async function loadMessages(id: string) {
     const response = await fetch(`/api/conversations/${id}/messages`);
@@ -278,13 +271,13 @@ export function ChatWorkspace() {
       });
       if (response.ok) await loadMessages(id);
       else {
-        const result = await response.json().catch(() => null) as { message?: string } | null;
-        const message = localizeSyncError(result?.message ?? l("同步失败；本地历史已保留，可稍后重试。", "Sync failed. Local history was kept; try again later."));
+        const result = await response.json().catch(() => null) as { message?: string; code?: string } | null;
+        const message = formatSystemError(locale, result?.code, result?.message ?? t(locale, "syncFailed"));
         setError(message);
         notify(message, "error");
       }
     } catch {
-      const message = l("网络连接中断；RelayDesk 本地历史已保留，可稍后重试同步。", "Network connection interrupted. RelayDesk local history was kept; try syncing again later.");
+      const message = t(locale, "networkInterrupted");
       setError(message);
       notify(message, "error");
     } finally {
@@ -298,11 +291,11 @@ export function ChatWorkspace() {
     if (!previous) return;
     setDraft(previous.contentText);
     setAttachments(previous.assets);
-    setError("已恢复上一次输入和附件，确认后可重新发送。");
+    setError(t(locale, "inputRestored"));
   }
   async function createConversationFor(agentId: string) {
-    if (agentsLoading) return setError("正在加载 Agent，请稍候。");
-    if (!agentId) return setError("当前没有可使用的 Agent，请联系管理员授权。");
+    if (agentsLoading) return setError(t(locale, "loadingAgents"));
+    if (!agentId) return setError(t(locale, "noAvailableAgent"));
     const response = await fetch("/api/conversations", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -323,7 +316,7 @@ export function ChatWorkspace() {
     setConversationId(item.id);
     setMessages([]);
   }
-  async function createConversation() { const agentId = selectedAgentId || agents[0]?.id; if (agentId) await createConversationFor(agentId); else setError("当前没有可使用的 Agent，请联系管理员授权。"); }
+  async function createConversation() { const agentId = selectedAgentId || agents[0]?.id; if (agentId) await createConversationFor(agentId); else setError(t(locale, "noAvailableAgent")); }
   async function switchAgent(agentId: string) {
     if (agentId === active?.runtimeConnectionId) return;
     setSelectedAgentId(agentId); setError(""); setShowArchived(false);
@@ -620,6 +613,13 @@ export function ChatWorkspace() {
   );
   const activeAgent = agents.find((agent) => agent.id === active?.runtimeConnectionId) ?? agents.find((agent) => agent.id === selectedAgentId);
   const canUploadToActiveAgent = runtimeAcceptsAttachments && Boolean(activeAgent?.permissions?.includes("upload"));
+  const runtimeEventLabel = (event: PersistedMessage["events"][number]) => {
+    if (event.type === "approval.required") return t(locale, "runtimeApprovalRequired");
+    if (event.type === "context.updated") return t(locale, "runtimeContextUsage");
+    if (event.type === "run.failed") return t(locale, "runtimeRunFailed");
+    if (event.type === "runtime.unknown") return `${t(locale, "runtimeEvent")} · ${event.name || t(locale, "unknown")}`;
+    return t(locale, "runtimeRawEvent");
+  };
 
   return (
     <section className={`chat-layout chat-live chat-core-layout${conversationRailCollapsed ? " conversation-rail-collapsed" : ""}`}>
@@ -798,7 +798,7 @@ export function ChatWorkspace() {
                       {message.events.map((runtimeEvent) => (
                         <details key={runtimeEvent.id}>
                           <summary>
-                            <span>{runtimeEvent.label}</span>
+                            <span>{runtimeEventLabel(runtimeEvent)}</span>
                             <ChevronDown size={13} />
                           </summary>
                           <pre>

@@ -12,13 +12,12 @@ engineering, research, operations and team-agent workflows.
 - streamed Runtime events, tool state, jobs and browser notifications;
 - controlled local file storage, backups and health checks.
 
-## Optional Content Workspace
+## Explicitly out of scope
 
-Content accounts, saved content, review prompts, covers and publishing plans
-are useful for content teams but are not required by a general Hermes Web UI.
-They remain maintained open-source modules, but must be configurable and may be
-disabled without affecting conversations, Agent access, assets or scheduled
-tasks.
+The public core intentionally does not include content accounts, saved-content
+records, publishing plans, cover workflows, or a CMS. Teams that need those
+product-specific workflows should build them as a separate extension rather
+than adding private business tables to the RelayDesk core.
 
 ## Internationalization
 

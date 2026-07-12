@@ -37,7 +37,7 @@ export type PersistedToolEvent = {
 export type PersistedRuntimeEvent = {
   id: string;
   type: string;
-  label: string;
+  name?: string;
   detail: string;
 };
 export type PersistedMessage = {
@@ -134,34 +134,30 @@ export function createConversationService(
             return {
               id: row.id,
               type: row.eventType,
-              label: "需要批准",
-              detail: payload.approval?.command || "Runtime 请求人工批准",
+              detail: payload.approval?.command || "",
             };
           if (row.eventType === "context.updated")
             return {
               id: row.id,
               type: row.eventType,
-              label: "上下文用量",
               detail: JSON.stringify(payload.usage ?? {}),
             };
           if (row.eventType === "run.failed")
             return {
               id: row.id,
               type: row.eventType,
-              label: "运行失败",
-              detail: payload.error?.message || "Runtime 运行失败",
+              detail: payload.error?.message || "",
             };
           return {
             id: row.id,
             type: row.eventType,
-            label: `Runtime 事件 · ${payload.name || "unknown"}`,
+            name: payload.name,
             detail: JSON.stringify(payload.payload ?? payload),
           };
         } catch {
           return {
             id: row.id,
             type: row.eventType,
-            label: "Runtime 原始事件",
             detail: row.payloadJson,
           };
         }
@@ -398,7 +394,7 @@ export function createConversationService(
           }
           sqlite
             .prepare(
-              `UPDATE conversations SET title = CASE WHEN title IN ('新建内容会话', 'New content chat') AND ? NOT IN ('未命名会话', 'Untitled chat') THEN ? ELSE title END, sync_status = 'idle', last_synced_at = ?, last_message_at = ?, updated_at = ? WHERE id = ?`,
+          `UPDATE conversations SET title = CASE WHEN title IN ('新建会话', 'New chat') AND ? NOT IN ('未命名会话', 'Untitled chat') THEN ? ELSE title END, sync_status = 'idle', last_synced_at = ?, last_message_at = ?, updated_at = ? WHERE id = ?`,
             )
             .run(
               session.title,

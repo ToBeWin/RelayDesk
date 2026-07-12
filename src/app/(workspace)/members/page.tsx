@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useEffect, useEffectEvent, useState } from "react";
 import { useToast } from "@/shared/components/toast-provider";
 import { useLocale } from "@/shared/i18n/locale-provider";
 
@@ -40,7 +40,8 @@ export default function MembersPage() {
     setGrants(Object.fromEntries(entries));
   }
 
-  useEffect(() => { const timer = window.setTimeout(() => void load(), 0); return () => window.clearTimeout(timer); }, []);
+  const loadMembers = useEffectEvent(() => { void load(); });
+  useEffect(() => { const timer = window.setTimeout(loadMembers, 0); return () => window.clearTimeout(timer); }, []);
 
   async function createMember(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setMessage(""); setCreating(true); const formElement = event.currentTarget; const form = new FormData(formElement);

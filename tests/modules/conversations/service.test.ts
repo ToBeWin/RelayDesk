@@ -161,7 +161,7 @@ describe("conversation service", () => {
     const service = createConversationService(sqlite, connector); const conversation = await service.create({ title: "失败会话", operatorId: "operator-a", runtimeConnectionId: "mock-agent" });
     for await (const event of service.send({ conversationId: conversation.id, text: "触发失败", operatorId: "operator-a" })) void event;
     expect(sqlite.prepare(`SELECT status, error_message as errorMessage FROM runs WHERE conversation_id = ?`).get(conversation.id)).toEqual({ status: "failed", errorMessage: "provider failed" });
-    const assistant = service.listMessages(conversation.id).find((message) => message.role === "assistant"); expect(assistant?.status).toBe("interrupted"); expect(assistant?.events[0]).toMatchObject({ type: "run.failed", label: "运行失败", detail: "provider failed" }); sqlite.close();
+    const assistant = service.listMessages(conversation.id).find((message) => message.role === "assistant"); expect(assistant?.status).toBe("interrupted"); expect(assistant?.events[0]).toMatchObject({ type: "run.failed", detail: "provider failed" }); expect(assistant?.events[0]).not.toHaveProperty("label"); sqlite.close();
   });
 
   it("archives Hermes MEDIA paths whose filenames contain spaces", async () => {

@@ -15,13 +15,11 @@ informed decisions.
   deployment configuration.
 - English and Simplified Chinese for the core login, navigation and chat
   workspace. Runtime output is preserved as returned by Hermes.
-- Optional Content Workspace for teams that need content records and schedules.
 
 ## Planned, not part of the compatibility promise
 
 - OpenClaw production connector.
-- Additional locale coverage for optional content-management and administrator
-  screens.
+- Additional locale coverage and administrator-screen polish.
 - Broader browser and accessibility test coverage.
 - A hosted update channel or SaaS deployment mode.
 

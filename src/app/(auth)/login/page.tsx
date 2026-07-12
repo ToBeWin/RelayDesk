@@ -44,7 +44,7 @@ export default function LoginPage() {
     </section>
     <section className="login-panel">
       <div className="login-card">
-        <div className="login-brand-row"><div className="login-brand"><span className="brand-mark"><BrandSymbol /></span><strong>RelayDesk</strong></div><button className="login-locale-switch" type="button" onClick={() => setLocale(locale === "en" ? "zh-CN" : "en")} aria-label={locale === "en" ? "Switch to Chinese" : "Switch to English"} title={locale === "en" ? "Switch to Chinese" : "Switch to English"}><Languages size={15} /><span>{locale === "en" ? "中文" : "EN"}</span></button></div>
+        <div className="login-brand-row"><div className="login-brand"><span className="brand-mark"><BrandSymbol /></span><strong>RelayDesk</strong></div><button className="login-locale-switch" type="button" onClick={() => setLocale(locale === "en" ? "zh-CN" : "en")} aria-label={locale === "en" ? "Switch to Chinese" : "Switch to English"} title={locale === "en" ? "Switch to Chinese" : "Switch to English"}><Languages size={15} /><span>{locale === "en" ? "EN" : "中文"}</span></button></div>
         <p className="eyebrow">{t(locale, "internalWorkspace")}</p>
         <h2>{t(locale, "loginTitle")}</h2>
         <p className="muted">{t(locale, "loginDescription")}</p>

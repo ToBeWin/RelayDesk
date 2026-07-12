@@ -2,8 +2,8 @@
 
 ## Product
 
-- [x] Confirm the general-purpose core works with Content Workspace disabled.
-- [x] Confirm the core login, navigation and chat paths have English and Simplified Chinese copy.
+- [x] Confirm the public core contains only chat, agent, attachment, reminder and administration workflows.
+- [ ] Confirm all system-owned pages and statuses have English and Simplified Chinese copy.
 - [ ] Record the supported Hermes Agent API Server version in the release notes.
 
 ## Security
@@ -16,8 +16,10 @@
 ## Verification
 
 - [x] `pnpm verify:release`
-- [ ] `docker compose build` (requires a running Docker daemon)
-- [ ] Start a clean container with a fresh data volume and verify `/api/health`.
+- [x] `pnpm verify:fresh-install`
+- [x] `pnpm verify:backup-restore`
+- [x] `pnpm verify:docker`
+- [ ] `RELAYDESK_RUN_DOCKER_TEST=1 pnpm verify:docker` (builds, starts, and health-checks a clean container)
 
 ## GitHub
 

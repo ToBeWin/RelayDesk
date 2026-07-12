@@ -5,6 +5,7 @@ test("login page localizes the product story and form together", async ({ page }
   await page.goto("/login");
   await expect(page.getByRole("heading", { name: "Enter your workspace" })).toBeVisible();
   await expect(page.getByText("Product review notes.md")).toBeVisible();
+  await expect.poll(() => page.locator("body").innerText()).not.toMatch(/[\u4e00-\u9fff]/);
   if (process.env.RELAYDESK_CAPTURE_README === "1") await page.screenshot({ path: "docs/images/login-en.png", fullPage: true });
   await page.getByRole("button", { name: "Switch to Chinese" }).click();
   await expect(page.getByRole("heading", { name: "进入工作台" })).toBeVisible();
@@ -35,6 +36,19 @@ test("operator can chat, persist history, and manage private chat sessions", asy
   expect(chatCanvas).toBeTruthy();
   expect(historyRail!.x).toBeLessThan(chatCanvas!.x);
   expect(chatCanvas!.width).toBeGreaterThan(1_000);
+
+  await page.setViewportSize({ width: 1400, height: 980 });
+  await expect(page.locator(".conversation-rail")).toBeVisible();
+  const mediumCanvas = await page.locator(".chat-canvas").boundingBox();
+  expect(mediumCanvas?.width).toBeGreaterThan(700);
+
+  await page.setViewportSize({ width: 1100, height: 900 });
+  await expect(page.locator(".conversation-rail")).toBeHidden();
+  const compactCanvas = await page.locator(".chat-canvas").boundingBox();
+  expect(compactCanvas?.width).toBeGreaterThan(600);
+
+  await page.setViewportSize({ width: 2048, height: 1119 });
+  await expect(page.locator(".conversation-rail")).toBeVisible();
   await page.getByRole("button", { name: "折叠对话列表" }).click();
   await expect(page.locator(".conversation-rail")).toBeHidden();
   const collapsedCanvas = await page.locator(".chat-canvas").boundingBox();
