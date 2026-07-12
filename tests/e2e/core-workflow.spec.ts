@@ -1,5 +1,16 @@
 import { expect, test } from "@playwright/test";
 
+test("login page localizes the product story and form together", async ({ page }) => {
+  await page.setViewportSize({ width: 2048, height: 1119 });
+  await page.goto("/login");
+  await expect(page.getByRole("heading", { name: "Enter your workspace" })).toBeVisible();
+  await expect(page.getByText("Product review notes.md")).toBeVisible();
+  await page.getByRole("button", { name: "Switch to Chinese" }).click();
+  await expect(page.getByRole("heading", { name: "进入工作台" })).toBeVisible();
+  await expect(page.getByText("需求评审会议纪要.md")).toBeVisible();
+  await expect(page.getByLabel("成员姓名")).toBeVisible();
+});
+
 test("operator can chat, persist history, save content, and search it", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
