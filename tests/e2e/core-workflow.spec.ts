@@ -97,6 +97,7 @@ test("operator can chat, persist history, and manage private chat sessions", asy
     page.locator(".composer .send-button").boundingBox(),
   ]);
   expect(cancelButton?.height).toBe(archiveButton?.height);
+  expect(cancelButton?.width).toBe(archiveButton?.width);
   expect(attachButton?.height).toBe(sendButton?.height);
   expect(attachButton?.width).toBe(sendButton?.width);
   await page.getByRole("alertdialog").getByRole("button", { name: "Cancel" }).click();
