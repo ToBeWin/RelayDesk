@@ -18,7 +18,7 @@ const schema = z.object({
   RELAYDESK_DATA_DIR: z.string().min(1).default(path.join(/* turbopackIgnore: true */ process.cwd(), "data")),
   RELAYDESK_DATABASE_PATH: z.string().min(1).optional(),
   RELAYDESK_STORAGE_CONFIG_PATH: z.string().min(1).default(path.join(/* turbopackIgnore: true */ process.cwd(), "relaydesk-storage.json")),
-  RELAYDESK_CONTENT_WORKSPACE_ENABLED: z.enum(["true", "false"]).default("true"),
+  RELAYDESK_CONTENT_WORKSPACE_ENABLED: z.enum(["true", "false"]).default("false"),
   RELAYDESK_RUNTIME_TYPE: z.enum(["hermes", "openclaw", "mock"]).default("mock"),
   RELAYDESK_HERMES_BASE_URL: urlSchema.optional(),
   RELAYDESK_HERMES_API_KEY: z.string().min(1).optional(),

@@ -18,10 +18,9 @@ describe("parseConfig", () => {
     expect(parseConfig({ ...base, RELAYDESK_COOKIE_SECURE: "true" }).cookieSecure).toBe(true);
   });
 
-  it("supports disabling the optional Content Workspace for a general-purpose deployment", () => {
+  it("keeps the retired Content Workspace disabled by default", () => {
     const base = { RELAYDESK_PASSWORD: "workspace-secret", RELAYDESK_SESSION_SECRET: "session-secret-at-least-32-characters" };
-    expect(parseConfig(base).contentWorkspaceEnabled).toBe(true);
-    expect(parseConfig({ ...base, RELAYDESK_CONTENT_WORKSPACE_ENABLED: "false" }).contentWorkspaceEnabled).toBe(false);
+    expect(parseConfig(base).contentWorkspaceEnabled).toBe(false);
   });
 
   it("rejects a Hermes host outside the explicit runtime allowlist", () => {

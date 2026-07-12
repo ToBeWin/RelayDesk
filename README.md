@@ -2,10 +2,9 @@
 
 > **RelayDesk — An Open-Source Web UI for Hermes Agent**
 
-RelayDesk is a self-hosted web channel and collaborative workspace for
-**Hermes Agent**. It keeps conversations, assets, scheduled tasks and backups
-on the local server while Hermes remains responsible for LLMs, tools, memory
-and image generation.
+RelayDesk is a self-hosted web channel for **Hermes Agent**. It keeps private
+conversations, assets, scheduled tasks and backups on the local server while
+Hermes remains responsible for LLMs, tools, memory and image generation.
 
 RelayDesk is an independent community project and is not affiliated with or endorsed by Nous Research.
 
@@ -40,13 +39,6 @@ Set the required values in `.env`, then run `docker compose up --build`. Persist
 - Hermes is the only production Runtime Connector in this release. The
   connector contract is intentionally runtime-neutral, but OpenClaw support is
   planned rather than currently shipped.
-
-## Optional Modules
-
-Set `RELAYDESK_CONTENT_WORKSPACE_ENABLED=false` to run RelayDesk as a
-general-purpose Hermes Web UI without content accounts, publishing plans, or
-the chat-side Content Workspace. Conversations, Agents, files, reminders,
-members, and backups remain available.
 
 ## Languages
 

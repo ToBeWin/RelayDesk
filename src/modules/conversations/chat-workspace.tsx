@@ -69,7 +69,8 @@ type PendingAsset = {
 };
 type AgentInstance = { id: string; name: string; workspaceLabel: string; profileName?: string; hostName?: string | null; sharingMode?: "shared" | "dedicated"; attachmentSupport?: "files" | "images_only"; permissions?: string[] };
 
-export function ChatWorkspace({ contentWorkspaceEnabled = true }: { contentWorkspaceEnabled?: boolean }) {
+export function ChatWorkspace() {
+  const contentWorkspaceEnabled = false;
   const searchParams = useSearchParams();
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [conversationId, setConversationId] = useState<string>();
