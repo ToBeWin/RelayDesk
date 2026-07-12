@@ -22,7 +22,7 @@ Licensed under the [MIT License](LICENSE).
 
 ## Screenshots
 
-Screenshots are generated with the mock Runtime and contain no production data.
+Screenshots use representative demo conversations and contain no production data.
 
 | Login | Chat workspace |
 | --- | --- |
