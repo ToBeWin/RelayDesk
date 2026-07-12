@@ -5,6 +5,7 @@ test("login page localizes the product story and form together", async ({ page }
   await page.goto("/login");
   await expect(page.getByRole("heading", { name: "Enter your workspace" })).toBeVisible();
   await expect(page.getByText("Product review notes.md")).toBeVisible();
+  if (process.env.RELAYDESK_CAPTURE_README === "1") await page.screenshot({ path: "docs/images/login-en.png", fullPage: true });
   await page.getByRole("button", { name: "Switch to Chinese" }).click();
   await expect(page.getByRole("heading", { name: "进入工作台" })).toBeVisible();
   await expect(page.getByText("需求评审会议纪要.md")).toBeVisible();
@@ -32,6 +33,7 @@ test("operator can chat, persist history, save content, and search it", async ({
   expect(historyRail).toBeTruthy();
   expect(chatCanvas).toBeTruthy();
   expect(historyRail!.x).toBeLessThan(chatCanvas!.x);
+  if (process.env.RELAYDESK_CAPTURE_README === "1") await page.screenshot({ path: "docs/images/chat-zh.png", fullPage: true });
   await page.getByRole("button", { name: "折叠侧边栏" }).click();
   await expect(page.locator(".sidebar")).toHaveClass(/collapsed/);
   await page.getByRole("button", { name: "展开侧边栏" }).click();

@@ -22,6 +22,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: test -z "$(git ls-files | grep -E '(^data/|\\.(db|sqlite|sqlite3)$|(^|/)\\.env$)' || true)"
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
