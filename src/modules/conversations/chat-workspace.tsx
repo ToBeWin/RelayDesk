@@ -951,13 +951,13 @@ export function ChatWorkspace() {
             />
           </label>
           {running ? (
-            <button type="button" aria-label={t(locale, "stopRun")} onClick={stopRun}>
+            <button type="button" className="composer-action-button" aria-label={t(locale, "stopRun")} onClick={stopRun}>
               <Square size={16} />
             </button>
           ) : null}
           <button
             aria-label={t(locale, "sendMessage")}
-            className="send-button"
+            className="send-button composer-action-button"
             disabled={
               !conversationId ||
               active?.status === "archived" ||

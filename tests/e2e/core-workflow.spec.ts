@@ -90,6 +90,15 @@ test("operator can chat, persist history, and manage private chat sessions", asy
   await page.getByLabel("Chat actions").getByRole("button", { name: "Archive chat" }).click();
   await expect(page.getByRole("alertdialog")).toContainText("Archive current chat");
   await expect.poll(() => page.getByRole("alertdialog").innerText()).not.toMatch(/[\u4e00-\u9fff]/);
+  const [cancelButton, archiveButton, attachButton, sendButton] = await Promise.all([
+    page.getByRole("alertdialog").getByRole("button", { name: "Cancel" }).boundingBox(),
+    page.getByRole("alertdialog").getByRole("button", { name: "Archive chat" }).boundingBox(),
+    page.locator(".composer .attach-button").boundingBox(),
+    page.locator(".composer .send-button").boundingBox(),
+  ]);
+  expect(cancelButton?.height).toBe(archiveButton?.height);
+  expect(attachButton?.height).toBe(sendButton?.height);
+  expect(attachButton?.width).toBe(sendButton?.width);
   await page.getByRole("alertdialog").getByRole("button", { name: "Cancel" }).click();
   await page.getByRole("button", { name: "Switch to Chinese" }).click();
   if (process.env.RELAYDESK_CAPTURE_README === "1") {
