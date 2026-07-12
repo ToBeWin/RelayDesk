@@ -67,7 +67,7 @@ test("operator can chat, persist history, save content, and search it", async ({
   await expect(page.getByRole("button", { name: "取消置顶", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "删除", exact: true }).click();
   await page.getByRole("button", { name: "确认删除" }).click();
-  await expect(page.locator(".conversation-empty")).toContainText("创建第一个会话");
+  await expect(page.locator("button.conversation-empty")).toBeVisible();
   await page.goto("/contents");
   await page.getByRole("textbox", { name: "搜索内容" }).fill("E2E 验收内容");
   await expect(page.locator(".content-row").filter({ hasText: "Mock Runtime 已收到：生成一条 RelayDesk E2E 验收内容" })).toBeVisible();
@@ -110,7 +110,7 @@ test("operator can chat, persist history, save content, and search it", async ({
   await expect(page).toHaveURL(/\/chat/);
   await expect(page.locator(".conversation-empty")).toContainText("创建第一个会话");
   await expect(page.getByText("Mock Runtime 已收到：生成一条 RelayDesk E2E 验收内容")).toHaveCount(0);
-  await page.locator(".conversation-empty").getByRole("button", { name: "创建第一个会话" }).click();
+  await page.locator("button.conversation-empty").click();
   await expect(page.getByRole("textbox", { name: "消息内容" })).toBeEnabled();
   expect(pageErrors).toEqual([]);
 });

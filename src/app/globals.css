@@ -137,7 +137,13 @@ a {
   margin-top: auto;
   padding: 16px 8px 0;
 }
-.locale-switch { background:transparent; border:1px solid var(--border); border-radius:6px; color:var(--muted); cursor:pointer; font-size:11px; padding:3px 6px; }
+.locale-switch,
+.login-locale-switch { align-items:center; background:transparent; border:1px solid transparent; border-radius:999px; color:#70809a; cursor:pointer; display:inline-flex; font:650 11px/1 "Geist", sans-serif; gap:5px; justify-content:center; letter-spacing:.02em; min-height:28px; padding:0 9px; transition:background .16s ease, border-color .16s ease, color .16s ease; }
+.locale-switch:hover,
+.login-locale-switch:hover { background:#edf3ff; border-color:#cfddf8; color:#1555bc; }
+.locale-switch:focus-visible,
+.login-locale-switch:focus-visible { outline:3px solid rgb(0 80 203 / 18%); outline-offset:2px; }
+.locale-switch svg { flex:none; }
 .sidebar.collapsed { align-items:center; padding:16px 10px; width:68px; }
 .sidebar.collapsed .sidebar-brand { margin:4px 0 28px; }
 .sidebar.collapsed .sidebar-collapse { right:12px; top:20px; }
@@ -365,8 +371,7 @@ a {
 .login-brand { align-items: center; display: flex; gap: 12px; margin-bottom: 66px; }
 .login-brand-row { align-items: flex-start; display: flex; justify-content: space-between; }
 .login-brand-row .login-brand { margin-bottom: 66px; }
-.login-locale-switch { background: #f4f7ff; border: 1px solid #cbd6ec; border-radius: 7px; color: #31517d; cursor: pointer; font: 650 12px/1 "Geist", sans-serif; letter-spacing: .02em; min-width: 44px; padding: 8px 10px; }
-.login-locale-switch:hover { background: #e6efff; border-color: #9db9ef; color: var(--primary); }
+.login-locale-switch { background:#f7f9fd; border-color:#e1e7f1; color:#52637d; min-width:52px; }
 .login-brand .brand-mark { height: 48px; padding: 6px; width: 48px; }
 .login-brand strong { font: 650 29px/1 "Hanken Grotesk", sans-serif; letter-spacing: -.05em; }
 .login-card .eyebrow { color: #61708b; font: 600 11px/1 "Geist", sans-serif; letter-spacing: .12em; margin: 0 0 13px; text-transform: uppercase; }
