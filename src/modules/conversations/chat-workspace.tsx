@@ -99,8 +99,8 @@ export function ChatWorkspace() {
   const [renameTitle, setRenameTitle] = useState("");
   const [reminderDialogOpen, setReminderDialogOpen] = useState(false);
   const [reminderBusy, setReminderBusy] = useState(false);
-  const [conversationRailCollapsed, setConversationRailCollapsed] = useState(() => typeof window !== "undefined" && window.localStorage.getItem("relaydesk:conversation-rail-collapsed") === "1");
-  const [contentWorkbenchCollapsed, setContentWorkbenchCollapsed] = useState(() => typeof window !== "undefined" && window.localStorage.getItem("relaydesk:content-workbench-collapsed") === "1");
+  const [conversationRailCollapsed, setConversationRailCollapsed] = useState(false);
+  const [contentWorkbenchCollapsed, setContentWorkbenchCollapsed] = useState(false);
   const draftContextRef = useRef<string | undefined>(undefined);
   const { notify } = useToast();
   const { locale } = useLocale();
@@ -118,6 +118,13 @@ export function ChatWorkspace() {
     refreshRuntimeHealth();
     void loadAgents();
     void loadAccounts();
+  }, []);
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setConversationRailCollapsed(window.localStorage.getItem("relaydesk:conversation-rail-collapsed") === "1");
+      setContentWorkbenchCollapsed(window.localStorage.getItem("relaydesk:content-workbench-collapsed") === "1");
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
   useEffect(() => {
     refreshRuntimeHealth();
