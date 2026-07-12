@@ -10,7 +10,7 @@ Hermes 负责。
 
 RelayDesk 是独立的社区项目，与 Nous Research 没有隶属或官方背书关系。
 
-采用 [Apache License 2.0](LICENSE) 开源。
+采用 [MIT License](LICENSE) 开源。
 
 ## 核心能力
 

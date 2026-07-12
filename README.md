@@ -10,7 +10,7 @@ Hermes remains responsible for LLMs, tools, memory and image generation.
 
 RelayDesk is an independent community project and is not affiliated with or endorsed by Nous Research.
 
-Licensed under the [Apache License 2.0](LICENSE).
+Licensed under the [MIT License](LICENSE).
 
 ## Highlights
 
