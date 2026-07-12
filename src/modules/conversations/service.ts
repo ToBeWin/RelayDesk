@@ -411,7 +411,7 @@ export function createConversationService(
           }
           sqlite
             .prepare(
-              `UPDATE conversations SET title = CASE WHEN title = '新建内容会话' AND ? <> '未命名会话' THEN ? ELSE title END, sync_status = 'idle', last_synced_at = ?, last_message_at = ?, updated_at = ? WHERE id = ?`,
+              `UPDATE conversations SET title = CASE WHEN title IN ('新建内容会话', 'New content chat') AND ? NOT IN ('未命名会话', 'Untitled chat') THEN ? ELSE title END, sync_status = 'idle', last_synced_at = ?, last_message_at = ?, updated_at = ? WHERE id = ?`,
             )
             .run(
               session.title,

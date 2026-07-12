@@ -11,6 +11,7 @@ import type {
   ContentRecord,
   ContentReview,
 } from "@/modules/contents/service";
+import { useLocale } from "@/shared/i18n/locale-provider";
 
 const statuses = [
   "draft",
@@ -32,6 +33,8 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function ContentsPage() {
+  const { locale } = useLocale();
+  const l = (zh: string, en: string) => (locale === "zh-CN" ? zh : en);
   const [items, setItems] = useState<ContentRecord[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [reviews, setReviews] = useState<ContentReview[]>([]);
@@ -240,27 +243,27 @@ export default function ContentsPage() {
     <section className="standard-page content-page">
       <div className="content-page-heading">
         <div>
-          <p className="eyebrow">内容中心</p>
-          <h1>内容库</h1>
-          <p className="muted">完整保存、预览和管理 Agent 对话沉淀的内容。</p>
+          <p className="eyebrow">{l("内容中心", "CONTENT")}</p>
+          <h1>{l("内容库", "Content library")}</h1>
+          <p className="muted">{l("完整保存、预览和管理 Agent 对话沉淀的内容。", "Save, preview, and manage useful content created from Agent conversations.")}</p>
         </div>
         <span className="content-count">
-          {visibleItems.length} / {items.length} 条内容
+          {visibleItems.length} / {items.length} {l("条内容", "items")}
         </span>
       </div>
       <div className="library-filters">
         <input
-          aria-label="搜索内容"
-          placeholder="搜索标题或正文"
+          aria-label={l("搜索内容", "Search content")}
+          placeholder={l("搜索标题或正文", "Search titles or body text")}
           value={query}
           onChange={(event) => setQuery(event.target.value)}
         />
         <select
-          aria-label="按状态筛选"
+          aria-label={l("按状态筛选", "Filter by status")}
           value={statusFilter}
           onChange={(event) => setStatusFilter(event.target.value)}
         >
-          <option value="">全部状态</option>
+          <option value="">{l("全部状态", "All statuses")}</option>
           {statuses.map((value) => (
             <option key={value} value={value}>
               {statusLabels[value]}
@@ -268,11 +271,11 @@ export default function ContentsPage() {
           ))}
         </select>
         <select
-          aria-label="按账号筛选"
+          aria-label={l("按账号筛选", "Filter by account")}
           value={accountFilter}
           onChange={(event) => setAccountFilter(event.target.value)}
         >
-          <option value="">全部账号</option>
+          <option value="">{l("全部账号", "All accounts")}</option>
           {accounts.map((account) => (
             <option key={account.id} value={account.id}>
               {account.code} · {account.name}
@@ -283,9 +286,9 @@ export default function ContentsPage() {
       <div className="content-workbench">
         <div className="content-table">
           <div className="content-header">
-            <span>内容</span>
-            <span>状态</span>
-            <span>更新时间</span>
+            <span>{l("内容", "Content")}</span>
+            <span>{l("状态", "Status")}</span>
+            <span>{l("更新时间", "Updated")}</span>
           </div>
           {visibleItems.length ? (
             visibleItems.map((item) => (
@@ -301,14 +304,14 @@ export default function ContentsPage() {
                 <span className={`status-chip ${item.status}`}>
                   {statusLabels[item.status] ?? item.status}
                 </span>
-                <time>{new Date(item.updatedAt).toLocaleString("zh-CN")}</time>
+                <time>{new Date(item.updatedAt).toLocaleString(locale)}</time>
               </button>
             ))
           ) : (
             <div className="content-empty">
               {items.length
-                ? "没有符合筛选条件的内容。"
-                : "暂无内容。请在聊天页将一条助手回复保存为内容。"}
+                ? l("没有符合筛选条件的内容。", "No content matches the current filters.")
+                : l("暂无内容。请在聊天页将一条助手回复保存为内容。", "No content yet. Save an assistant reply from a chat to get started.")}
             </div>
           )}
         </div>
@@ -316,7 +319,7 @@ export default function ContentsPage() {
           <aside className="content-inspector">
             <div className="content-inspector-header">
               <div>
-                <p className="eyebrow">内容工作台</p>
+                <p className="eyebrow">{l("内容工作台", "CONTENT WORKSPACE")}</p>
                 <h2>{active.title}</h2>
               </div>
               {editing ? (
@@ -510,7 +513,7 @@ export default function ContentsPage() {
           </aside>
         ) : (
           <aside className="content-inspector empty">
-            <p>选择一条内容查看完整正文。</p>
+            <p>{l("选择一条内容查看完整正文。", "Select content to view its full text.")}</p>
           </aside>
         )}
       </div>

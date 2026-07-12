@@ -78,7 +78,7 @@ export function ChatWorkspace({ contentWorkspaceEnabled = true }: { contentWorks
   const [attachments, setAttachments] = useState<PendingAsset[]>([]);
   const [running, setRunning] = useState(false);
   const [syncing, setSyncing] = useState(false);
-  const [runtimeName, setRuntimeName] = useState("正在检查 Runtime");
+  const [runtimeName, setRuntimeName] = useState("Checking Runtime");
   const [runtimeAcceptsAttachments, setRuntimeAcceptsAttachments] =
     useState(false);
   const [agents, setAgents] = useState<AgentInstance[]>([]);
@@ -103,17 +103,24 @@ export function ChatWorkspace({ contentWorkspaceEnabled = true }: { contentWorks
   const draftContextRef = useRef<string | undefined>(undefined);
   const { notify } = useToast();
   const { locale } = useLocale();
+  const l = (zh: string, en: string) => (locale === "zh-CN" ? zh : en);
   const newConversationRequestedRef = useRef(false);
   const onNewConversationRequested = useEffectEvent(() => {
     void createConversation();
   });
+  const refreshRuntimeHealth = useEffectEvent(() => {
+    void loadRuntimeHealth();
+  });
 
   useEffect(() => {
     void loadConversations();
-    void loadRuntimeHealth();
+    refreshRuntimeHealth();
     void loadAgents();
     void loadAccounts();
   }, []);
+  useEffect(() => {
+    refreshRuntimeHealth();
+  }, [locale]);
   useEffect(() => {
     if (newConversationRequestedRef.current || agentsLoading || !agents.length || searchParams.get("new") !== "1") return;
     newConversationRequestedRef.current = true;
@@ -198,10 +205,10 @@ export function ChatWorkspace({ contentWorkspaceEnabled = true }: { contentWorks
     const health = response.ok ? await response.json() : null;
     setRuntimeName(
       health?.runtime?.type === "hermes"
-        ? "Hermes Agent 已连接"
+        ? l("Hermes Agent 已连接", "Hermes Agent connected")
         : health?.runtime?.type === "mock"
-          ? "Mock Runtime 已连接"
-          : "Runtime 未连接",
+          ? l("Mock Runtime 已连接", "Mock Runtime connected")
+          : l("Runtime 未连接", "Runtime disconnected"),
     );
     setRuntimeAcceptsAttachments(
       Boolean(health?.runtime?.capabilities?.attachments),
@@ -319,7 +326,7 @@ export function ChatWorkspace({ contentWorkspaceEnabled = true }: { contentWorks
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        title: account ? `${account.name} · 新会话` : "新建内容会话",
+        title: account ? `${account.name} · ${l("新会话", "New chat")}` : l("新建内容会话", "New content chat"),
         runtimeConnectionId: agentId,
         contentAccountId: selectedAccountId || undefined,
       }),
@@ -653,19 +660,19 @@ export function ChatWorkspace({ contentWorkspaceEnabled = true }: { contentWorks
 
   return (
     <section className={`chat-layout chat-live${conversationRailCollapsed ? " conversation-rail-collapsed" : ""}${contentWorkbenchCollapsed ? " content-workbench-collapsed" : ""}${contentWorkspaceEnabled ? "" : " content-workspace-disabled"}`}>
-      {conversationRailCollapsed ? <button className="chat-panel-restore conversation-panel-restore" onClick={toggleConversationRail} aria-label="展开对话列表" title="展开对话列表" data-tooltip="展开对话列表"><ChevronRight size={16} strokeWidth={2.25} /></button> : null}
-      {contentWorkspaceEnabled && contentWorkbenchCollapsed ? <button className="chat-panel-restore content-panel-restore" onClick={toggleContentWorkbench} aria-label="展开内容工作台" title="展开内容工作台" data-tooltip="展开内容工作台"><ChevronLeft size={16} strokeWidth={2.25} /></button> : null}
+      {conversationRailCollapsed ? <button className="chat-panel-restore conversation-panel-restore" onClick={toggleConversationRail} aria-label={l("展开对话列表", "Expand chat list")} title={l("展开对话列表", "Expand chat list")} data-tooltip={l("展开对话列表", "Expand chat list")}><ChevronRight size={16} strokeWidth={2.25} /></button> : null}
+      {contentWorkspaceEnabled && contentWorkbenchCollapsed ? <button className="chat-panel-restore content-panel-restore" onClick={toggleContentWorkbench} aria-label={l("展开内容工作台", "Expand content workspace")} title={l("展开内容工作台", "Expand content workspace")} data-tooltip={l("展开内容工作台", "Expand content workspace")}><ChevronLeft size={16} strokeWidth={2.25} /></button> : null}
       <button className="archive-toggle-overlay" onClick={toggleArchived}>
-        {showArchived ? "返回当前会话" : "查看归档会话"}
+        {showArchived ? t(locale, "returnToCurrent") : t(locale, "viewArchive")}
       </button>
       <aside className="conversation-rail">
         <div className="rail-heading">
           <button className="rail-mode" onClick={toggleArchived}>
-            {showArchived ? "返回当前" : "查看归档"}
+            {showArchived ? t(locale, "returnToCurrent") : t(locale, "viewArchive")}
           </button>
           <div className="rail-heading-actions">
-            <button onClick={() => void createConversation()} aria-label="新建会话" disabled={agentsLoading || !agents.length || showArchived} title="新建会话"><Plus size={16} /></button>
-            <button onClick={toggleConversationRail} aria-label="折叠对话列表" title="折叠对话列表"><ChevronLeft size={16} strokeWidth={2.25} /></button>
+            <button onClick={() => void createConversation()} aria-label={t(locale, "newConversation")} disabled={agentsLoading || !agents.length || showArchived} title={t(locale, "newConversation")}><Plus size={16} /></button>
+            <button onClick={toggleConversationRail} aria-label={l("折叠对话列表", "Collapse chat list")} title={l("折叠对话列表", "Collapse chat list")}><ChevronLeft size={16} strokeWidth={2.25} /></button>
           </div>
         </div>
         <input
@@ -680,7 +687,7 @@ export function ChatWorkspace({ contentWorkspaceEnabled = true }: { contentWorks
             <article className={conversation.id === conversationId ? "conversation-row active" : "conversation-row"} key={conversation.id}>
               <button className="conversation-row-select" onClick={() => setConversationId(conversation.id)} aria-label={`打开会话：${conversation.title}`}>
                 <span>{conversation.pinnedAt ? <Pin size={12} aria-label="已置顶" /> : null}{conversation.title}</span>
-                <small>{new Date(conversation.updatedAt).toLocaleDateString("zh-CN")}</small>
+                <small>{new Date(conversation.updatedAt).toLocaleDateString(locale)}</small>
               </button>
               <div className="conversation-row-actions" aria-label={`${conversation.title} 操作`}>
                 <button className="conversation-row-action" onClick={(event) => { event.stopPropagation(); void togglePinnedConversation(conversation); }} aria-label={conversation.pinnedAt ? t(locale, "unpin") : t(locale, "pin")} title={conversation.pinnedAt ? t(locale, "unpin") : t(locale, "pin")} data-tooltip={conversation.pinnedAt ? t(locale, "unpin") : t(locale, "pin")}>{conversation.pinnedAt ? <PinOff size={14} /> : <Pin size={14} />}</button>
@@ -690,7 +697,7 @@ export function ChatWorkspace({ contentWorkspaceEnabled = true }: { contentWorks
             </article>
           ))
         ) : showArchived ? (
-          <p className="conversation-empty">暂无归档会话</p>
+          <p className="conversation-empty">{l("暂无归档会话", "No archived chats")}</p>
         ) : (
           <button
             className="conversation-empty"
@@ -698,9 +705,9 @@ export function ChatWorkspace({ contentWorkspaceEnabled = true }: { contentWorks
             disabled={agentsLoading || !agents.length}
           >
             {agentsLoading
-              ? "正在加载 Agent…"
+              ? l("正在加载 Agent…", "Loading Agents…")
               : agents.length
-                ? "创建第一个会话"
+                ? t(locale, "createFirstChat")
                 : "暂无 Agent 授权"}
           </button>
         )}
@@ -712,40 +719,40 @@ export function ChatWorkspace({ contentWorkspaceEnabled = true }: { contentWorks
               {active?.contentAccountName
                 ? `内容账号 · ${active.contentAccountName}`
                 : active?.status === "archived"
-                  ? "已归档会话"
-                  : "当前会话"}
-              {syncing ? " · 正在同步 Hermes" : ""}
+                  ? t(locale, "archivedChat")
+                  : t(locale, "currentChat")}
+              {syncing ? ` · ${t(locale, "syncing")} Hermes` : ""}
             </p>
             <h1>
-              {active?.title ?? (showArchived ? "归档会话" : "新建内容会话")}
+              {active?.title ?? (showArchived ? t(locale, "archivedChat") : t(locale, "newConversation"))}
             </h1>
           </div>
           <div className="chat-header-actions">
             {active ? (
               active.status === "archived" ? (
-                <button className="header-text-button" onClick={restoreConversation}>恢复并继续</button>
+                <button className="header-text-button" onClick={restoreConversation}>{l("恢复并继续", "Restore and continue")}</button>
               ) : (
-                <div className="session-action-group" aria-label="会话操作">
+                <div className="session-action-group" aria-label={l("会话操作", "Chat actions")}>
                   <button
                     className="toolbar-icon-button"
                     onClick={() => void loadAndSync(active.id)}
                     disabled={syncing}
-                    aria-label={syncing ? "正在同步会话" : "同步会话"}
-                    title={syncing ? "正在同步会话" : "同步会话"}
-                    data-tooltip={syncing ? "正在同步会话" : "同步会话"}
+                    aria-label={syncing ? l("正在同步会话", "Syncing chat") : l("同步会话", "Sync chat")}
+                    title={syncing ? l("正在同步会话", "Syncing chat") : l("同步会话", "Sync chat")}
+                    data-tooltip={syncing ? l("正在同步会话", "Syncing chat") : l("同步会话", "Sync chat")}
                   >
                     <RefreshCw className={syncing ? "is-spinning" : undefined} size={16} />
                   </button>
-                  <button className="toolbar-icon-button" onClick={() => { setRenameTitle(active.title); setRenameDialogOpen(true); }} aria-label="重命名会话" title="重命名会话" data-tooltip="重命名会话"><PencilLine size={16} /></button>
-                  <button className="toolbar-icon-button" onClick={() => setReminderDialogOpen(true)} aria-label="创建定时任务" title="创建定时任务" data-tooltip="创建定时任务"><Clock3 size={16} /></button>
-                  <button className="toolbar-icon-button danger" onClick={() => setArchiveConfirmOpen(true)} aria-label="归档会话" title="归档会话" data-tooltip="归档会话"><Archive size={16} /></button>
+                  <button className="toolbar-icon-button" onClick={() => { setRenameTitle(active.title); setRenameDialogOpen(true); }} aria-label={l("重命名会话", "Rename chat")} title={l("重命名会话", "Rename chat")} data-tooltip={l("重命名会话", "Rename chat")}><PencilLine size={16} /></button>
+                  <button className="toolbar-icon-button" onClick={() => setReminderDialogOpen(true)} aria-label={l("创建定时任务", "Create scheduled task")} title={l("创建定时任务", "Create scheduled task")} data-tooltip={l("创建定时任务", "Create scheduled task")}><Clock3 size={16} /></button>
+                  <button className="toolbar-icon-button danger" onClick={() => setArchiveConfirmOpen(true)} aria-label={l("归档会话", "Archive chat")} title={l("归档会话", "Archive chat")} data-tooltip={l("归档会话", "Archive chat")}><Archive size={16} /></button>
                 </div>
               )
             ) : null}
             {active && active.status !== "archived" ? <span className="header-toolbar-divider" aria-hidden="true" /> : null}
             {!active && !showArchived && accounts.length ? (
               <label className="agent-selector">
-                账号{" "}
+                {l("账号", "Account")}{" "}
                 <select
                   value={selectedAccountId}
                   onChange={(event) => chooseAccount(event.target.value)}
@@ -776,7 +783,7 @@ export function ChatWorkspace({ contentWorkspaceEnabled = true }: { contentWorks
             ) : null}
             <span className="runtime-status">
               <i />
-            <span>{runtimeName}{activeAgent?.attachmentSupport === "images_only" ? " · 仅图片附件" : ""}</span>
+            <span>{runtimeName}{activeAgent?.attachmentSupport === "images_only" ? ` · ${l("仅图片附件", "Images only")}` : ""}</span>
             </span>
           </div>
         </header>
@@ -785,17 +792,17 @@ export function ChatWorkspace({ contentWorkspaceEnabled = true }: { contentWorks
             {messages.map((message, index) => (
               <article key={message.id} className={`message ${message.role}`}>
                 <span className="message-avatar">
-                  {message.role === "assistant" ? <Bot size={16} /> : "你"}
+                  {message.role === "assistant" ? <Bot size={16} /> : l("你", "You")}
                 </span>
                 <div className="message-body">
                   <div className="message-meta">
                     <span>
                       {message.role === "assistant"
                         ? "Hermes Agent"
-                        : message.operatorName || "操作者"}
+                        : message.operatorName || l("操作者", "Operator")}
                     </span>
                     <time>
-                      {new Date(message.createdAt).toLocaleTimeString("zh-CN", {
+                      {new Date(message.createdAt).toLocaleTimeString(locale, {
                         hour: "2-digit",
                         minute: "2-digit",
                       })}
@@ -803,14 +810,14 @@ export function ChatWorkspace({ contentWorkspaceEnabled = true }: { contentWorks
                     {message.status === "streaming" ? (
                       <>
                         <LoaderCircle className="spin" size={14} />
-                        <small>运行中</small>
+                        <small>{l("运行中", "Running")}</small>
                       </>
                     ) : message.status === "interrupted" ||
                       message.status === "failed" ? (
-                      <small className="message-failed">连接已中断</small>
+                      <small className="message-failed">{l("连接已中断", "Connection interrupted")}</small>
                     ) : (
                       <small>
-                        {message.status === "pending" ? "发送中" : "已同步"}
+                        {message.status === "pending" ? l("发送中", "Sending") : l("已同步", "Synced")}
                       </small>
                     )}
                   </div>
@@ -925,10 +932,9 @@ export function ChatWorkspace({ contentWorkspaceEnabled = true }: { contentWorks
             <span className="agent-icon">
               <Bot size={24} />
             </span>
-            <h2>从一个明确的内容目标开始</h2>
+            <h2>{l("从一个明确的内容目标开始", "Start with a clear goal")}</h2>
             <p>
-              选择账号、描述需求，RelayDesk
-              会将整个对话过程沉淀为可管理的工作成果。
+              {l("选择账号、描述需求，RelayDesk 会将整个对话过程沉淀为可管理的工作成果。", "Choose an account and describe the work. RelayDesk turns the conversation into organized, reusable work.")}
             </p>
             <button
               className="primary-button"
@@ -936,9 +942,9 @@ export function ChatWorkspace({ contentWorkspaceEnabled = true }: { contentWorks
               disabled={agentsLoading || !agents.length}
             >
               {agentsLoading
-                ? "正在加载 Agent…"
+                ? l("正在加载 Agent…", "Loading Agents…")
                 : agents.length
-                  ? "开始新会话"
+                  ? t(locale, "newConversation")
                   : "暂无 Agent 授权"}
             </button>
           </div>
@@ -965,16 +971,16 @@ export function ChatWorkspace({ contentWorkspaceEnabled = true }: { contentWorks
               </div>
             ) : null}
             <textarea
-              aria-label="消息内容"
+              aria-label={l("消息内容", "Message content")}
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
               onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) void send(event); }}
               placeholder={
                 active?.status === "archived"
-                  ? "请先恢复会话再继续"
+                  ? l("请先恢复会话再继续", "Restore this chat before continuing")
                   : conversationId
-                    ? "描述你要创作、检查或修改的内容…"
-                    : "请先创建会话"
+                    ? t(locale, "messagePlaceholder")
+                    : l("请先创建会话", "Create a chat first")
               }
               rows={2}
               disabled={
@@ -1038,9 +1044,9 @@ export function ChatWorkspace({ contentWorkspaceEnabled = true }: { contentWorks
       </div>
       <aside className="utility-pane content-properties">
         <header>
-          <p>内容工作台</p>
+          <p>{l("内容工作台", "Content workspace")}</p>
           <div className="utility-header-actions">
-            <span>{latestAssistant ? "可归档" : "等待回复"}</span>
+            <span>{latestAssistant ? l("可归档", "Ready to save") : l("等待回复", "Waiting for reply")}</span>
             <button onClick={toggleContentWorkbench} aria-label="折叠内容工作台" title="折叠内容工作台"><ChevronRight size={16} strokeWidth={2.25} /></button>
           </div>
         </header>
@@ -1049,42 +1055,42 @@ export function ChatWorkspace({ contentWorkspaceEnabled = true }: { contentWorks
             <ImagePlus size={20} />
           </span>
           <div>
-            <strong>把可用回复沉淀为内容</strong>
-            <p>保存后可在内容库编辑标题、备注、状态、封面和排期。</p>
+            <strong>{l("把可用回复沉淀为内容", "Save useful replies as content")}</strong>
+            <p>{l("保存后可在内容库编辑标题、备注、状态、封面和排期。", "Edit the title, notes, status, cover, and schedule from the content library.")}</p>
           </div>
         </div>
         <div className="context-summary">
-          <span>内容账号</span>
+          <span>{l("内容账号", "Content account")}</span>
           <strong>
             {active?.contentAccountName ??
               accounts.find((item) => item.id === selectedAccountId)?.name ??
-              "未绑定账号"}
+              l("未绑定账号", "No account selected")}
           </strong>
-          <small>{active ? "已随会话固定" : "新会话将使用此账号"}</small>
+          <small>{active ? l("已随会话固定", "Fixed for this chat") : l("新会话将使用此账号", "New chats will use this account")}</small>
         </div>
         <div className="context-summary">
-          <span>当前会话</span>
-          <strong>{active?.title ?? "尚未创建会话"}</strong>
+          <span>{t(locale, "currentChat")}</span>
+          <strong>{active?.title ?? l("尚未创建会话", "No chat created")}</strong>
           <small>{runtimeName}</small>
         </div>
         <div className="context-summary">
-          <span>附件能力</span>
+          <span>{l("附件能力", "Attachment support")}</span>
           <strong>
             {canUploadToActiveAgent
               ? attachments.length
                 ? `待发送 ${attachments.length} 个文件`
-                : "可发送文件到 Hermes"
-              : "当前 Hermes 连接不支持附件转发"}
+                : l("可发送文件到 Hermes", "Files can be sent to Hermes")
+              : l("当前 Hermes 连接不支持附件转发", "This Hermes connection does not support attachments")}
           </strong>
           <small>
             {canUploadToActiveAgent
-              ? "上传后的文件会归档到 RelayDesk 本地存储。"
-              : "为避免误导，附件入口已关闭。"}
+              ? l("上传后的文件会归档到 RelayDesk 本地存储。", "Uploaded files are archived in RelayDesk local storage.")
+              : l("为避免误导，附件入口已关闭。", "The attachment control is disabled to avoid misleading results.")}
           </small>
         </div>
         <p className={error ? "property-hint error" : "property-hint"}>
           {error ||
-            "内容自检和封面工作流在内容库中发起，所有结果会回到这条真实会话。"}
+            l("内容自检和封面工作流在内容库中发起，所有结果会回到这条真实会话。", "Content checks and cover workflows begin in the content library. Every result returns to this chat.")}
         </p>
         <div className="property-actions">
           <button
@@ -1093,7 +1099,7 @@ export function ChatWorkspace({ contentWorkspaceEnabled = true }: { contentWorks
             onClick={() => setError("请先保存为内容，再在内容库发起自检。")}
           >
             <CheckSquare2 size={16} />
-            内容自检
+            {l("内容自检", "Content check")}
           </button>
           <button
             className="save-content-button"
@@ -1101,7 +1107,7 @@ export function ChatWorkspace({ contentWorkspaceEnabled = true }: { contentWorks
             onClick={() => latestAssistant && saveContent(latestAssistant.id)}
           >
             <FileText size={16} />
-            保存为内容
+            {l("保存为内容", "Save as content")}
           </button>
         </div>
       </aside>
