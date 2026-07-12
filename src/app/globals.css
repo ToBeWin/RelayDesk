@@ -2735,6 +2735,23 @@ a {
   display: none;
 }
 
+/* Keep the composer editable at every desktop width. A grid gives the text
+   column the remaining space even when optional run controls appear. */
+.chat-live.chat-core-layout .composer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) repeat(3, auto);
+  min-width: 0;
+  width: auto;
+}
+.chat-live.chat-core-layout .composer-main {
+  min-width: 0;
+  width: 100%;
+}
+.chat-live.chat-core-layout .composer textarea {
+  min-width: 0;
+  width: 100%;
+}
+
 /* Settings uses task-oriented tabs so administrative tools do not become one
    long waterfall. Existing cards stay mounted, preserving in-progress forms. */
 .settings-tabs {

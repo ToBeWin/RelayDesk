@@ -41,11 +41,21 @@ test("operator can chat, persist history, and manage private chat sessions", asy
   await expect(page.locator(".conversation-rail")).toBeVisible();
   const mediumCanvas = await page.locator(".chat-canvas").boundingBox();
   expect(mediumCanvas?.width).toBeGreaterThan(700);
+  const [mediumComposer, mediumComposerMain] = await Promise.all([
+    page.locator(".composer").boundingBox(),
+    page.locator(".composer-main").boundingBox(),
+  ]);
+  expect(mediumComposerMain?.width).toBeGreaterThan((mediumComposer?.width ?? 0) * 0.7);
 
   await page.setViewportSize({ width: 1100, height: 900 });
   await expect(page.locator(".conversation-rail")).toBeHidden();
   const compactCanvas = await page.locator(".chat-canvas").boundingBox();
   expect(compactCanvas?.width).toBeGreaterThan(600);
+  const [compactComposer, compactComposerMain] = await Promise.all([
+    page.locator(".composer").boundingBox(),
+    page.locator(".composer-main").boundingBox(),
+  ]);
+  expect(compactComposerMain?.width).toBeGreaterThan((compactComposer?.width ?? 0) * 0.7);
 
   await page.setViewportSize({ width: 2048, height: 1119 });
   await expect(page.locator(".conversation-rail")).toBeVisible();
