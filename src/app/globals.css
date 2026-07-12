@@ -788,6 +788,18 @@ a {
   }
 }
 
+/* This must remain last: the open-source core intentionally has no inspector column. */
+@media (min-width: 1101px) {
+  .chat-live.content-workspace-disabled,
+  .chat-live.content-workspace-disabled.content-workbench-collapsed {
+    grid-template-columns: 210px minmax(0, 1fr) !important;
+  }
+  .chat-live.content-workspace-disabled.conversation-rail-collapsed,
+  .chat-live.content-workspace-disabled.conversation-rail-collapsed.content-workbench-collapsed {
+    grid-template-columns: 0 minmax(0, 1fr) !important;
+  }
+}
+
 /* Core RelayDesk has no inspector rail. This must come after legacy desktop
    grid rules so a persisted inspector-collapse preference cannot compress chat. */
 @media (min-width: 1101px) {
