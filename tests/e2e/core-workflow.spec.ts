@@ -34,6 +34,7 @@ test("operator can chat, persist history, save content, and search it", async ({
   expect(historyRail).toBeTruthy();
   expect(chatCanvas).toBeTruthy();
   expect(historyRail!.x).toBeLessThan(chatCanvas!.x);
+  expect(chatCanvas!.width).toBeGreaterThan(1_000);
   await page.getByRole("button", { name: "折叠侧边栏" }).click();
   await expect(page.locator(".sidebar")).toHaveClass(/collapsed/);
   await page.getByRole("button", { name: "展开侧边栏" }).click();

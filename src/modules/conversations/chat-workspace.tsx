@@ -105,6 +105,13 @@ export function ChatWorkspace() {
   const { notify } = useToast();
   const { locale } = useLocale();
   const l = (zh: string, en: string) => (locale === "zh-CN" ? zh : en);
+  const localizeSyncError = (message: string) => {
+    if (locale === "zh-CN") return message;
+    if (message.includes("未找到这个会话")) return "Hermes could not find this chat. Your RelayDesk history has been kept.";
+    if (message.includes("暂时不可用")) return "Hermes is temporarily unavailable. Your RelayDesk history has been kept; try syncing again later.";
+    if (message.includes("授权已失效")) return "Hermes authorization has expired. Ask an administrator to check the agent key.";
+    return message;
+  };
   const newConversationRequestedRef = useRef(false);
   const onNewConversationRequested = useEffectEvent(() => {
     void createConversation();
@@ -305,12 +312,12 @@ export function ChatWorkspace() {
       if (response.ok) await loadMessages(id);
       else {
         const result = await response.json().catch(() => null) as { message?: string } | null;
-        const message = result?.message ?? "同步失败；本地历史已保留，可稍后重试。";
+        const message = localizeSyncError(result?.message ?? l("同步失败；本地历史已保留，可稍后重试。", "Sync failed. Local history was kept; try again later."));
         setError(message);
         notify(message, "error");
       }
     } catch {
-      const message = "网络连接中断；RelayDesk 本地历史已保留，可稍后重试同步。";
+      const message = l("网络连接中断；RelayDesk 本地历史已保留，可稍后重试同步。", "Network connection interrupted. RelayDesk local history was kept; try syncing again later.");
       setError(message);
       notify(message, "error");
     } finally {

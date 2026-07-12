@@ -788,6 +788,18 @@ a {
   }
 }
 
+/* Must follow every legacy Stitch layout rule: the public core has no third pane. */
+@media (min-width: 1101px) {
+  .chat-live.content-workspace-disabled,
+  .chat-live.content-workspace-disabled.content-workbench-collapsed {
+    grid-template-columns: 210px minmax(0, 1fr) !important;
+  }
+  .chat-live.content-workspace-disabled.conversation-rail-collapsed,
+  .chat-live.content-workspace-disabled.conversation-rail-collapsed.content-workbench-collapsed {
+    grid-template-columns: 0 minmax(0, 1fr) !important;
+  }
+}
+
 /* This must remain last: the open-source core intentionally has no inspector column. */
 @media (min-width: 1101px) {
   .chat-live.content-workspace-disabled,
@@ -2922,11 +2934,20 @@ a {
   }
 }
 
-/* Final desktop grid rules. Keep the three direct children on one row: history, chat, inspector. */
+/* Final desktop layout. The public core has no inspector column. */
 @media (min-width: 1400px) {
-  .chat-live {
+  .chat-live:not(.content-workspace-disabled) {
     grid-template-columns: 210px minmax(0, 1fr) 360px;
     grid-template-rows: minmax(0, 1fr);
+  }
+  .chat-live.content-workspace-disabled,
+  .chat-live.content-workspace-disabled.content-workbench-collapsed {
+    grid-template-columns: 210px minmax(0, 1fr) !important;
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .chat-live.content-workspace-disabled.conversation-rail-collapsed,
+  .chat-live.content-workspace-disabled.conversation-rail-collapsed.content-workbench-collapsed {
+    grid-template-columns: 0 minmax(0, 1fr) !important;
   }
   .chat-live > * {
     min-height: 0;
