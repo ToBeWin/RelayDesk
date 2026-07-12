@@ -38,4 +38,12 @@ describe("Agent fleet and grants", () => {
     expect(agent.attachmentSupport).toBe("files");
     sqlite.close();
   });
+
+  it("grants only public-core permissions by default", () => {
+    const directory = mkdtempSync(path.join(tmpdir(), "relaydesk-public-access-")); directories.push(directory);
+    const { sqlite } = createDatabase(path.join(directory, "relaydesk.db")); const agents = createAgentService(sqlite);
+    agents.grantDefaultAccess("member-a");
+    expect(agents.listAuthorized("member-a")[0]?.permissions).toEqual(["chat", "upload", "view_history"]);
+    sqlite.close();
+  });
 });

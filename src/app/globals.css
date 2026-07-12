@@ -2887,28 +2887,33 @@ a {
 
 /* RelayDesk core is a true two-pane layout. Flex avoids grid auto-placement
    changing child columns when the conversation rail is removed. */
-.chat-live.content-workspace-disabled {
+.chat-live.chat-core-layout {
   display: flex;
   min-height: 0;
   overflow: hidden;
   position: relative;
 }
-.chat-live.content-workspace-disabled > .conversation-rail {
+.chat-live.chat-core-layout > .conversation-rail {
   display: block;
   flex: 0 0 210px;
   min-width: 0;
 }
-.chat-live.content-workspace-disabled > .chat-canvas {
+.chat-live.chat-core-layout > .chat-canvas {
   flex: 1 1 auto;
   min-height: 0;
   min-width: 0;
   width: auto;
 }
-.chat-live.content-workspace-disabled.conversation-rail-collapsed > .conversation-rail {
+.chat-inline-error {
+  color: #b42318;
+  font-size: 13px;
+  margin: 0 24px 12px;
+}
+.chat-live.chat-core-layout.conversation-rail-collapsed > .conversation-rail {
   display: none;
 }
 @media (max-width: 1100px) {
-  .chat-live.content-workspace-disabled > .conversation-rail {
+  .chat-live.chat-core-layout > .conversation-rail {
     display: none;
   }
 }

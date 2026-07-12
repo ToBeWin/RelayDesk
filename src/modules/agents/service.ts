@@ -2,7 +2,8 @@ import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
 import { config } from "@/infrastructure/config/env";
 
-export type AgentPermission = "chat" | "upload" | "manage_content" | "view_history";
+export type AgentPermission = "chat" | "upload" | "view_history";
+const publicCorePermissions: AgentPermission[] = ["chat", "upload", "view_history"];
 export type AgentInstance = { id: string; name: string; type: string; baseUrl: string; workspaceLabel: string; profileName: string; hostId: string | null; hostName: string | null; sharingMode: "shared" | "dedicated"; credentialMode: "managed" | "environment" | "default"; attachmentSupport: "files" | "images_only"; permissions: AgentPermission[]; enabled: boolean };
 
 const defaultInstanceId = "hermes-default";
@@ -28,8 +29,8 @@ export function createAgentService(sqlite: Database.Database) {
       ensureDefaultInstance();
       if (config.runtimeType === "openclaw") return;
       const now = Date.now();
-      sqlite.prepare(`INSERT INTO operator_runtime_access (id, operator_id, runtime_connection_id, enabled, created_at, updated_at) VALUES (?, ?, ?, 1, ?, ?) ON CONFLICT(operator_id, runtime_connection_id) DO UPDATE SET enabled = 1, updated_at = excluded.updated_at`)
-        .run(randomUUID(), operatorId, defaultInstanceId, now, now);
+      sqlite.prepare(`INSERT INTO operator_runtime_access (id, operator_id, runtime_connection_id, enabled, permissions_json, created_at, updated_at) VALUES (?, ?, ?, 1, ?, ?, ?) ON CONFLICT(operator_id, runtime_connection_id) DO UPDATE SET enabled = 1, permissions_json = excluded.permissions_json, updated_at = excluded.updated_at`)
+        .run(randomUUID(), operatorId, defaultInstanceId, JSON.stringify(publicCorePermissions), now, now);
     },
     listAuthorized(operatorId: string): AgentInstance[] {
       ensureDefaultInstance();
@@ -37,7 +38,7 @@ export function createAgentService(sqlite: Database.Database) {
         const item = row as { id: string; name: string; type: string; baseUrl: string; hostId: string | null; hostName: string | null; profileName: string | null; sharingMode: "shared" | "dedicated"; credentialCiphertext: string | null; configJson: string; permissionsJson: string; enabled: number };
         let workspaceLabel = ""; try { workspaceLabel = (JSON.parse(item.configJson) as { workspaceLabel?: string }).workspaceLabel ?? ""; } catch { /* Invalid legacy config is not allowed to break agent selection. */ }
         let apiKeyEnv: string | undefined; try { apiKeyEnv = (JSON.parse(item.configJson) as { apiKeyEnv?: string }).apiKeyEnv; } catch { /* Legacy config. */ }
-        let permissions: AgentPermission[] = []; try { permissions = JSON.parse(item.permissionsJson) as AgentPermission[]; } catch { /* Invalid grants resolve to no access. */ }
+        let permissions: AgentPermission[] = []; try { permissions = (JSON.parse(item.permissionsJson) as string[]).filter((permission): permission is AgentPermission => publicCorePermissions.includes(permission as AgentPermission)); } catch { /* Invalid grants resolve to no access. */ }
         return { id: item.id, name: item.name, type: item.type, baseUrl: item.baseUrl, workspaceLabel, profileName: item.profileName ?? workspaceLabel, hostId: item.hostId, hostName: item.hostName, sharingMode: item.sharingMode, credentialMode: item.credentialCiphertext ? "managed" as const : apiKeyEnv ? "environment" as const : "default" as const, attachmentSupport: attachmentSupportFor(item.baseUrl), permissions, enabled: Boolean(item.enabled) };
       });
     },
@@ -55,6 +56,7 @@ export function createAgentService(sqlite: Database.Database) {
       });
     },
     setAccess(operatorId: string, grants: { runtimeConnectionId: string; permissions: AgentPermission[] }[], grantedByOperatorId: string) {
+      if (grants.some((grant) => grant.permissions.some((permission) => !publicCorePermissions.includes(permission)))) throw new Error("Unsupported public-core permission");
       const runtimeConnectionIds = grants.map((grant) => grant.runtimeConnectionId);
       const now = Date.now(); const transaction = sqlite.transaction(() => {
         for (const runtimeConnectionId of runtimeConnectionIds) {

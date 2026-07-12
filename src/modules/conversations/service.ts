@@ -12,8 +12,6 @@ export type ConversationSummary = {
   id: string;
   title: string;
   runtimeConnectionId: string;
-  contentAccountId: string | null;
-  contentAccountName: string | null;
   externalSessionId: string;
   status: string;
   syncStatus: string;
@@ -176,7 +174,7 @@ export function createConversationService(
       };
     });
   };
-  const conversationSelect = `SELECT conversations.id, conversations.title, conversations.runtime_connection_id as runtimeConnectionId, conversations.content_account_id as contentAccountId, content_accounts.name as contentAccountName, conversations.external_session_id as externalSessionId, conversations.status, conversations.sync_status as syncStatus, conversations.pinned_at as pinnedAt, conversations.created_at as createdAt, conversations.updated_at as updatedAt FROM conversations LEFT JOIN content_accounts ON content_accounts.id = conversations.content_account_id`;
+  const conversationSelect = `SELECT conversations.id, conversations.title, conversations.runtime_connection_id as runtimeConnectionId, conversations.external_session_id as externalSessionId, conversations.status, conversations.sync_status as syncStatus, conversations.pinned_at as pinnedAt, conversations.created_at as createdAt, conversations.updated_at as updatedAt FROM conversations`;
   const getConversation = (
     conversationId: string,
   ): ConversationSummary | undefined =>
@@ -203,29 +201,18 @@ export function createConversationService(
       title?: string;
       operatorId: string;
       runtimeConnectionId: string;
-      contentAccountId?: string;
     }): Promise<ConversationSummary> {
-      if (
-        input.contentAccountId &&
-        !sqlite
-          .prepare(
-            `SELECT 1 FROM content_accounts WHERE id = ? AND enabled = 1`,
-          )
-          .get(input.contentAccountId)
-      )
-        throw new Error("Content account not found");
       const connector = resolveConnector(input.runtimeConnectionId);
       const external = await connector.createSession({ title: input.title });
       const now = Date.now();
       const id = randomUUID();
       sqlite
         .prepare(
-          `INSERT INTO conversations (id, runtime_connection_id, content_account_id, external_session_id, title, status, owner_operator_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 'active', ?, ?, ?)`,
+          `INSERT INTO conversations (id, runtime_connection_id, external_session_id, title, status, owner_operator_id, created_at, updated_at) VALUES (?, ?, ?, ?, 'active', ?, ?, ?)`,
         )
         .run(
           id,
           input.runtimeConnectionId,
-          input.contentAccountId ?? null,
           external.id,
           external.title,
           input.operatorId,

@@ -12,12 +12,10 @@ import {
 import {
   Bot,
   Archive,
-  CheckSquare2,
   Clock3,
   ChevronDown,
   Download,
   FileText,
-  ImagePlus,
   LoaderCircle,
   Paperclip,
   ChevronLeft,
@@ -41,7 +39,6 @@ import type {
   ConversationSummary,
   PersistedMessage,
 } from "@/modules/conversations/service";
-import type { ContentAccount } from "@/modules/contents/service";
 import { redactSensitiveDisplayText } from "@/shared/utils/redact-sensitive-display";
 import { ConfirmDialog, TextPromptDialog } from "@/shared/components/confirm-dialog";
 import { useToast } from "@/shared/components/toast-provider";
@@ -70,7 +67,6 @@ type PendingAsset = {
 type AgentInstance = { id: string; name: string; workspaceLabel: string; profileName?: string; hostName?: string | null; sharingMode?: "shared" | "dedicated"; attachmentSupport?: "files" | "images_only"; permissions?: string[] };
 
 export function ChatWorkspace() {
-  const contentWorkspaceEnabled = false;
   const searchParams = useSearchParams();
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [conversationId, setConversationId] = useState<string>();
@@ -84,13 +80,10 @@ export function ChatWorkspace() {
     useState(false);
   const [agents, setAgents] = useState<AgentInstance[]>([]);
   const [agentsLoading, setAgentsLoading] = useState(true);
-  const [accounts, setAccounts] = useState<ContentAccount[]>([]);
   const [selectedAgentId, setSelectedAgentId] = useState("");
-  const [selectedAccountId, setSelectedAccountId] = useState("");
   const [query, setQuery] = useState("");
   const [showArchived, setShowArchived] = useState(false);
   const [error, setError] = useState("");
-  const [savedContentMessageIds, setSavedContentMessageIds] = useState<Set<string>>(new Set());
   const [previewAsset, setPreviewAsset] = useState<PendingAsset | null>(null);
   const [previewText, setPreviewText] = useState("");
   const [archiveConfirmOpen, setArchiveConfirmOpen] = useState(false);
@@ -100,7 +93,6 @@ export function ChatWorkspace() {
   const [reminderDialogOpen, setReminderDialogOpen] = useState(false);
   const [reminderBusy, setReminderBusy] = useState(false);
   const [conversationRailCollapsed, setConversationRailCollapsed] = useState(false);
-  const [contentWorkbenchCollapsed, setContentWorkbenchCollapsed] = useState(false);
   const draftContextRef = useRef<string | undefined>(undefined);
   const { notify } = useToast();
   const { locale } = useLocale();
@@ -124,12 +116,10 @@ export function ChatWorkspace() {
     void loadConversations();
     refreshRuntimeHealth();
     void loadAgents();
-    void loadAccounts();
   }, []);
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setConversationRailCollapsed(window.localStorage.getItem("relaydesk:conversation-rail-collapsed") === "1");
-      setContentWorkbenchCollapsed(window.localStorage.getItem("relaydesk:content-workbench-collapsed") === "1");
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
@@ -256,33 +246,10 @@ export function ChatWorkspace() {
       setAgentsLoading(false);
     }
   }
-  async function loadAccounts() {
-    const response = await fetch("/api/accounts");
-    if (!response.ok) return;
-    const items = (await response.json()) as ContentAccount[];
-    setAccounts(items);
-    setSelectedAccountId((current) => current || items[0]?.id || "");
-  }
-  function chooseAccount(accountId: string) {
-    setSelectedAccountId(accountId);
-    const account = accounts.find((item) => item.id === accountId);
-    if (
-      account?.defaultRuntimeConnectionId &&
-      agents.some((agent) => agent.id === account.defaultRuntimeConnectionId)
-    )
-      setSelectedAgentId(account.defaultRuntimeConnectionId);
-  }
   function toggleConversationRail() {
     setConversationRailCollapsed((current) => {
       const next = !current;
       window.localStorage.setItem("relaydesk:conversation-rail-collapsed", next ? "1" : "0");
-      return next;
-    });
-  }
-  function toggleContentWorkbench() {
-    setContentWorkbenchCollapsed((current) => {
-      const next = !current;
-      window.localStorage.setItem("relaydesk:content-workbench-collapsed", next ? "1" : "0");
       return next;
     });
   }
@@ -336,14 +303,12 @@ export function ChatWorkspace() {
   async function createConversationFor(agentId: string) {
     if (agentsLoading) return setError("正在加载 Agent，请稍候。");
     if (!agentId) return setError("当前没有可使用的 Agent，请联系管理员授权。");
-    const account = accounts.find((item) => item.id === selectedAccountId);
     const response = await fetch("/api/conversations", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        title: account ? `${account.name} · ${l("新会话", "New chat")}` : l("新建内容会话", "New content chat"),
+        title: l("新会话", "New chat"),
         runtimeConnectionId: agentId,
-        contentAccountId: selectedAccountId || undefined,
       }),
     });
     if (!response.ok) {
@@ -523,16 +488,6 @@ export function ChatWorkspace() {
       setRunning(false);
     }
   }
-  async function saveContent(messageId: string) {
-    if (savedContentMessageIds.has(messageId)) return;
-    const response = await fetch("/api/contents", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ messageId }),
-    });
-    if (!response.ok) { setError("保存内容失败，请稍后重试。"); notify("保存内容失败，请稍后重试。", "error"); }
-    else { setSavedContentMessageIds((current) => new Set(current).add(messageId)); notify("已保存到内容中心。", "success"); }
-  }
   async function stopRun() {
     if (!conversationId) return;
     const response = await fetch(`/api/conversations/${conversationId}/stop`, {
@@ -663,20 +618,12 @@ export function ChatWorkspace() {
         .toLocaleLowerCase()
         .includes(query.toLocaleLowerCase()),
   );
-  const latestAssistant = [...messages]
-    .reverse()
-    .find(
-      (message) =>
-        message.role === "assistant" && message.status === "completed",
-    );
   const activeAgent = agents.find((agent) => agent.id === active?.runtimeConnectionId) ?? agents.find((agent) => agent.id === selectedAgentId);
   const canUploadToActiveAgent = runtimeAcceptsAttachments && Boolean(activeAgent?.permissions?.includes("upload"));
-  const canManageActiveContent = contentWorkspaceEnabled && Boolean(activeAgent?.permissions?.includes("manage_content"));
 
   return (
-    <section className={`chat-layout chat-live${conversationRailCollapsed ? " conversation-rail-collapsed" : ""}${contentWorkbenchCollapsed ? " content-workbench-collapsed" : ""}${contentWorkspaceEnabled ? "" : " content-workspace-disabled"}`}>
+    <section className={`chat-layout chat-live chat-core-layout${conversationRailCollapsed ? " conversation-rail-collapsed" : ""}`}>
       {conversationRailCollapsed ? <button className="chat-panel-restore conversation-panel-restore" onClick={toggleConversationRail} aria-label={l("展开对话列表", "Expand chat list")} title={l("展开对话列表", "Expand chat list")} data-tooltip={l("展开对话列表", "Expand chat list")}><ChevronRight size={16} strokeWidth={2.25} /></button> : null}
-      {contentWorkspaceEnabled && contentWorkbenchCollapsed ? <button className="chat-panel-restore content-panel-restore" onClick={toggleContentWorkbench} aria-label={l("展开内容工作台", "Expand content workspace")} title={l("展开内容工作台", "Expand content workspace")} data-tooltip={l("展开内容工作台", "Expand content workspace")}><ChevronLeft size={16} strokeWidth={2.25} /></button> : null}
       <button className="archive-toggle-overlay" onClick={toggleArchived}>
         {showArchived ? t(locale, "returnToCurrent") : t(locale, "viewArchive")}
       </button>
@@ -731,9 +678,7 @@ export function ChatWorkspace() {
         <header className="page-header">
           <div>
             <p className="eyebrow">
-              {active?.contentAccountName
-                ? `内容账号 · ${active.contentAccountName}`
-                : active?.status === "archived"
+              {active?.status === "archived"
                   ? t(locale, "archivedChat")
                   : t(locale, "currentChat")}
               {syncing ? ` · ${t(locale, "syncing")} Hermes` : ""}
@@ -765,21 +710,6 @@ export function ChatWorkspace() {
               )
             ) : null}
             {active && active.status !== "archived" ? <span className="header-toolbar-divider" aria-hidden="true" /> : null}
-            {!active && !showArchived && accounts.length ? (
-              <label className="agent-selector">
-                {l("账号", "Account")}{" "}
-                <select
-                  value={selectedAccountId}
-                  onChange={(event) => chooseAccount(event.target.value)}
-                >
-                  {accounts.map((account) => (
-                    <option key={account.id} value={account.id}>
-                      {account.code} · {account.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ) : null}
             {!showArchived && agents.length ? (
               <label className="agent-selector">
                 <span><Bot size={15} />Agent</span>
@@ -915,18 +845,6 @@ export function ChatWorkspace() {
                       )}
                     </div>
                   ) : null}
-                  {canManageActiveContent && message.role === "assistant" &&
-                  message.status === "completed" ? (
-                    <button
-                      className="text-action"
-                      onClick={() => saveContent(message.id)}
-                      disabled={savedContentMessageIds.has(message.id)}
-                    >
-                      {savedContentMessageIds.has(message.id)
-                        ? "已保存为内容"
-                        : "保存为内容"}
-                    </button>
-                  ) : null}
                   {message.role === "assistant" &&
                   (message.status === "interrupted" ||
                     message.status === "failed") ? (
@@ -1056,76 +974,8 @@ export function ChatWorkspace() {
             )}
           </button>
         </form>
+        {error ? <p className="chat-inline-error" role="alert">{error}</p> : null}
       </div>
-      <aside className="utility-pane content-properties">
-        <header>
-          <p>{l("内容工作台", "Content workspace")}</p>
-          <div className="utility-header-actions">
-            <span>{latestAssistant ? l("可归档", "Ready to save") : l("等待回复", "Waiting for reply")}</span>
-            <button onClick={toggleContentWorkbench} aria-label="折叠内容工作台" title="折叠内容工作台"><ChevronRight size={16} strokeWidth={2.25} /></button>
-          </div>
-        </header>
-        <div className="content-status-card">
-          <span className="agent-icon">
-            <ImagePlus size={20} />
-          </span>
-          <div>
-            <strong>{l("把可用回复沉淀为内容", "Save useful replies as content")}</strong>
-            <p>{l("保存后可在内容库编辑标题、备注、状态、封面和排期。", "Edit the title, notes, status, cover, and schedule from the content library.")}</p>
-          </div>
-        </div>
-        <div className="context-summary">
-          <span>{l("内容账号", "Content account")}</span>
-          <strong>
-            {active?.contentAccountName ??
-              accounts.find((item) => item.id === selectedAccountId)?.name ??
-              l("未绑定账号", "No account selected")}
-          </strong>
-          <small>{active ? l("已随会话固定", "Fixed for this chat") : l("新会话将使用此账号", "New chats will use this account")}</small>
-        </div>
-        <div className="context-summary">
-          <span>{t(locale, "currentChat")}</span>
-          <strong>{active?.title ?? l("尚未创建会话", "No chat created")}</strong>
-          <small>{runtimeName}</small>
-        </div>
-        <div className="context-summary">
-          <span>{l("附件能力", "Attachment support")}</span>
-          <strong>
-            {canUploadToActiveAgent
-              ? attachments.length
-                ? `待发送 ${attachments.length} 个文件`
-                : l("可发送文件到 Hermes", "Files can be sent to Hermes")
-              : l("当前 Hermes 连接不支持附件转发", "This Hermes connection does not support attachments")}
-          </strong>
-          <small>
-            {canUploadToActiveAgent
-              ? l("上传后的文件会归档到 RelayDesk 本地存储。", "Uploaded files are archived in RelayDesk local storage.")
-              : l("为避免误导，附件入口已关闭。", "The attachment control is disabled to avoid misleading results.")}
-          </small>
-        </div>
-        <p className={error ? "property-hint error" : "property-hint"}>
-          {error ||
-            l("内容自检和封面工作流在内容库中发起，所有结果会回到这条真实会话。", "Content checks and cover workflows begin in the content library. Every result returns to this chat.")}
-        </p>
-        <div className="property-actions">
-          <button
-            className="review-button"
-            disabled={!latestAssistant || !canManageActiveContent}
-            onClick={() => setError("请先保存为内容，再在内容库发起自检。")}
-          >
-            <CheckSquare2 size={16} />
-            {l("内容自检", "Content check")}
-          </button>
-          <button
-            className="save-content-button"
-            disabled={!latestAssistant || !canManageActiveContent}
-            onClick={() => latestAssistant && saveContent(latestAssistant.id)}
-          >
-            <FileText size={16} />
-            {l("保存为内容", "Save as content")}
-          </button>
-        </div>
-      </aside>
       {previewAsset ? (
         <div
           className="asset-lightbox"

@@ -6,8 +6,8 @@ import { createAgentService, type AgentPermission } from "@/modules/agents/servi
 import { createMemberService } from "@/modules/members/service";
 
 export const runtime = "nodejs";
-const permissionSchema = z.enum(["chat", "upload", "manage_content", "view_history"]);
-const schema = z.object({ grants: z.array(z.object({ runtimeConnectionId: z.string().min(1).max(120), permissions: z.array(permissionSchema).min(1).max(4) })).max(50) });
+const permissionSchema = z.enum(["chat", "upload", "view_history"]);
+const schema = z.object({ grants: z.array(z.object({ runtimeConnectionId: z.string().min(1).max(120), permissions: z.array(permissionSchema).min(1).max(3) })).max(50) });
 
 export async function GET(_: Request, context: { params: Promise<{ id: string }> }) {
   const currentId = await getCurrentOperatorId(); if (!currentId) return NextResponse.json({ message: "未登录" }, { status: 401 }); const { sqlite } = createDatabase(); try { const members = createMemberService(sqlite); if (!members.isAdmin(currentId)) return NextResponse.json({ message: "需要管理员权限" }, { status: 403 });

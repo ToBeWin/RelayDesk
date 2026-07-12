@@ -5,10 +5,10 @@ import { useToast } from "@/shared/components/toast-provider";
 import { useLocale } from "@/shared/i18n/locale-provider";
 
 type Member = { id: string; name: string; role: "admin" | "member"; active: boolean; hasPassword: boolean };
-type Permission = "chat" | "upload" | "manage_content" | "view_history";
+type Permission = "chat" | "upload" | "view_history";
 type Agent = { id: string; name: string; workspaceLabel: string; profileName?: string; hostName?: string | null; baseUrl: string; sharingMode?: "shared" | "dedicated"; permissions?: Permission[]; enabled: boolean };
 type Grant = { runtimeConnectionId: string; permissions: Permission[] };
-const allPermissions: Permission[] = ["chat", "upload", "manage_content", "view_history"];
+const allPermissions: Permission[] = ["chat", "upload", "view_history"];
 
 export default function MembersPage() {
   const [members, setMembers] = useState<Member[]>([]);
@@ -24,7 +24,6 @@ export default function MembersPage() {
   const permissionLabels: Record<Permission, string> = {
     chat: l("发起私聊", "Start chats"),
     upload: l("发送文件", "Send files"),
-    manage_content: l("管理内容", "Manage content"),
     view_history: l("查看历史", "View history"),
   };
 

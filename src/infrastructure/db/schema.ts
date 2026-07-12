@@ -29,7 +29,6 @@ export const runtimeConnections = sqliteTable("runtime_connections", {
 export const conversations = sqliteTable("conversations", {
   id: text("id").primaryKey(),
   runtimeConnectionId: text("runtime_connection_id").notNull(),
-  contentAccountId: text("content_account_id"),
   externalSessionId: text("external_session_id").notNull(),
   title: text("title").notNull(),
   status: text("status").notNull().default("active"),
@@ -51,20 +50,10 @@ export const operatorRuntimeAccess = sqliteTable("operator_runtime_access", {
   runtimeConnectionId: text("runtime_connection_id").notNull(),
   enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
   grantedByOperatorId: text("granted_by_operator_id"),
-  permissionsJson: text("permissions_json").notNull().default('["chat","upload","manage_content","view_history"]'),
+  permissionsJson: text("permissions_json").notNull().default('["chat","upload","view_history"]'),
   createdAt: integer("created_at").notNull(),
   updatedAt: integer("updated_at").notNull(),
 }, (table) => [uniqueIndex("operator_runtime_access_unique").on(table.operatorId, table.runtimeConnectionId)]);
-
-export const quickActions = sqliteTable("quick_actions", {
-  id: text("id").primaryKey(),
-  key: text("key").notNull().unique(),
-  name: text("name").notNull(),
-  promptTemplate: text("prompt_template").notNull(),
-  enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
-  createdAt: integer("created_at").notNull(),
-  updatedAt: integer("updated_at").notNull(),
-});
 
 export const agentHosts = sqliteTable("agent_hosts", {
   id: text("id").primaryKey(),

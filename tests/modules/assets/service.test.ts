@@ -40,15 +40,13 @@ describe("asset service", () => {
     sqlite.close();
   });
 
-  it("does not expose content assets to another private-chat operator", async () => {
+  it("does not expose private uploaded assets to another operator", async () => {
     const directory = mkdtempSync(path.join(tmpdir(), "relaydesk-private-assets-")); directories.push(directory);
-    const { sqlite } = createDatabase(path.join(directory, "relaydesk.db")); const now = Date.now();
-    sqlite.prepare(`INSERT INTO content_records (id, conversation_id, source_message_id, title, body_markdown, status, created_by_operator_id, created_at, updated_at) VALUES ('content-1', 'conversation-1', 'message-1', '内容', '正文', 'draft', 'operator-a', ?, ?)`).run(now, now);
+    const { sqlite } = createDatabase(path.join(directory, "relaydesk.db"));
     const service = createAssetService(sqlite, directory);
-    const asset = await service.archiveUpload({ originalName: "cover.png", mimeType: "image/png", content: Buffer.from("image"), contentRecordId: "content-1", ownerOperatorId: "operator-a" });
+    const asset = await service.archiveUpload({ originalName: "private.png", mimeType: "image/png", content: Buffer.from("image"), ownerOperatorId: "operator-a" });
     expect(service.getViewAuthorized(asset.id, "operator-a")?.id).toBe(asset.id);
     expect(service.getViewAuthorized(asset.id, "operator-b")).toBeUndefined();
-    expect(service.listForContent("content-1", "operator-b")).toHaveLength(0);
     sqlite.close();
   });
 });

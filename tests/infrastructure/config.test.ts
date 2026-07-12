@@ -18,11 +18,6 @@ describe("parseConfig", () => {
     expect(parseConfig({ ...base, RELAYDESK_COOKIE_SECURE: "true" }).cookieSecure).toBe(true);
   });
 
-  it("keeps the retired Content Workspace disabled by default", () => {
-    const base = { RELAYDESK_PASSWORD: "workspace-secret", RELAYDESK_SESSION_SECRET: "session-secret-at-least-32-characters" };
-    expect(parseConfig(base).contentWorkspaceEnabled).toBe(false);
-  });
-
   it("rejects a Hermes host outside the explicit runtime allowlist", () => {
     expect(() => parseConfig({ RELAYDESK_RUNTIME_TYPE: "hermes", RELAYDESK_HERMES_BASE_URL: "http://169.254.169.254", RELAYDESK_RUNTIME_ALLOWED_HOSTS: "127.0.0.1" })).toThrow("host is not allowed");
   });

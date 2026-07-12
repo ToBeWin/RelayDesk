@@ -13,7 +13,7 @@ test("login page localizes the product story and form together", async ({ page }
   if (process.env.RELAYDESK_CAPTURE_README === "1") await page.screenshot({ path: "docs/images/login-zh.png", fullPage: true });
 });
 
-test("operator can chat, persist history, save content, and search it", async ({ page }) => {
+test("operator can chat, persist history, and manage private chat sessions", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
   await page.addInitScript(() => {

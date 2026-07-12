@@ -8,7 +8,7 @@ import { createAgentService } from "@/modules/agents/service";
 import { logError } from "@/infrastructure/logging/logger";
 
 export const runtime = "nodejs";
-const schema = z.object({ title: z.string().trim().min(1).max(120).optional(), runtimeConnectionId: z.string().min(1).max(120).default("hermes-default"), contentAccountId: z.string().uuid().optional() });
+const schema = z.object({ title: z.string().trim().min(1).max(120).optional(), runtimeConnectionId: z.string().min(1).max(120).default("hermes-default") });
 export async function GET() { const operatorId = await getCurrentOperatorId(); if (!operatorId) return NextResponse.json({ message: "未登录" }, { status: 401 }); const { sqlite } = createDatabase(); try { const access = createAgentService(sqlite); return NextResponse.json(createConversationService(sqlite, (id) => getRuntimeConnectorForConnection(sqlite, id)).list(operatorId).filter((conversation) => access.canAccess(operatorId, conversation.runtimeConnectionId, "view_history"))); } finally { sqlite.close(); } }
 export async function POST(request: Request) {
   const operatorId = await getCurrentOperatorId();
