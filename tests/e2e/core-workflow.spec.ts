@@ -51,7 +51,12 @@ test("operator can chat, persist history, save content, and search it", async ({
   await composer.fill("生成一条 RelayDesk E2E 验收内容");
   await composer.press("Enter");
   await expect(page.getByText("Mock Runtime 已收到：生成一条 RelayDesk E2E 验收内容")).toBeVisible();
-  if (process.env.RELAYDESK_CAPTURE_README === "1") await page.screenshot({ path: "docs/images/chat-zh.png", fullPage: true });
+  if (process.env.RELAYDESK_CAPTURE_README === "1") {
+    await page.screenshot({ path: "docs/images/chat-zh.png", fullPage: true });
+    await page.getByRole("button", { name: "Switch to English" }).click();
+    await page.screenshot({ path: "docs/images/chat-en.png", fullPage: true });
+    await page.getByRole("button", { name: "Switch to Chinese" }).click();
+  }
 
   await page.reload();
   await expect(page.getByText("Mock Runtime 已收到：生成一条 RelayDesk E2E 验收内容")).toBeVisible();
