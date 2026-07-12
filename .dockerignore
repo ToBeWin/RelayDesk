@@ -1,0 +1,23 @@
+# Dependencies and framework output are recreated inside the image.
+node_modules
+.next
+
+# Never send local state, credentials, or generated assets to Docker build context.
+data
+.env
+.env.*
+!.env.example
+
+# Local test, browser, editor, and OS artifacts.
+coverage
+test-results
+playwright-report
+output
+.tmp
+.playwright-cli
+.DS_Store
+*.log
+
+# Repository metadata is not needed by the runtime image.
+.git
+.gitignore

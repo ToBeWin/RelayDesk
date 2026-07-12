@@ -1,0 +1,14 @@
+node_modules/
+.next/
+data/
+.env
+coverage/
+.tmp/
+.playwright-cli/
+test-results/
+playwright-report/
+output/
+stitch_relaydesk/
+.DS_Store
+*.log
+*.tsbuildinfo

@@ -1,0 +1,17 @@
+name: Bug report
+description: Report a reproducible RelayDesk defect
+body:
+  - type: textarea
+    attributes:
+      label: What happened?
+      description: Do not include credentials, private messages, or customer files.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Reproduction steps
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: RelayDesk version or commit
