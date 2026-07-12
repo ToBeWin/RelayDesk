@@ -249,8 +249,8 @@ export function ChatWorkspace() {
     event.preventDefault(); if (!conversationId) return;
     setReminderBusy(true); const form = new FormData(event.currentTarget);
     const response = await fetch("/api/reminders", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ conversationId, name: form.get("name"), schedule: form.get("schedule"), prompt: form.get("prompt") }) });
-    const result = await response.json(); setReminderBusy(false);
-    if (!response.ok) return notify(result.message ?? t(locale, "reminderFailed"), "error");
+    setReminderBusy(false);
+    if (!response.ok) return notify(t(locale, "reminderFailed"), "error");
     setReminderDialogOpen(false); notify(t(locale, "reminderCreated"), "success");
   }
   async function loadMessages(id: string) {
@@ -304,8 +304,7 @@ export function ChatWorkspace() {
       }),
     });
     if (!response.ok) {
-      const result = await response.json().catch(() => null) as { message?: string } | null;
-      const message = result?.message ?? t(locale, "createChatFailed");
+      const message = t(locale, "createChatFailed");
       setError(message);
       notify(message, "error");
       return;
@@ -334,7 +333,7 @@ export function ChatWorkspace() {
       body: file,
     });
     const asset = await response.json();
-    if (!response.ok) return setError(asset.message ?? t(locale, "uploadFailed"));
+    if (!response.ok) return setError(t(locale, "uploadFailed"));
     setAttachments((items) => [...items, asset]);
   }
   async function uploadAttachments(files: FileList) {
@@ -374,7 +373,7 @@ export function ChatWorkspace() {
         taskKind: "chat",
         createdAt: Date.now(),
         operatorId: null,
-        operatorName: "我",
+        operatorName: t(locale, "localOperator"),
         assets: attachments,
         tools: [],
         events: [],
@@ -531,14 +530,14 @@ export function ChatWorkspace() {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ status: "archived" }),
     });
-    if (!response.ok) { notify("归档会话失败，请稍后重试。", "error"); return; }
+    if (!response.ok) { notify(t(locale, "archiveFailed"), "error"); return; }
     const updated = (await response.json()) as ConversationSummary;
     setConversations((items) => items.map((item) => item.id === updated.id ? updated : item));
     if (conversation.id === conversationId) {
       const next = conversations.find((item) => item.id !== conversation.id && item.status === "active");
       setConversationId(next?.id); setMessages([]);
     }
-    notify("会话已归档。", "success");
+    notify(t(locale, "chatArchived"), "success");
   }
   async function restoreConversation() {
     if (!active) return;
@@ -547,7 +546,7 @@ export function ChatWorkspace() {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ status: "active" }),
     });
-    if (!response.ok) return setError("恢复会话失败。");
+    if (!response.ok) return setError(t(locale, "restoreFailed"));
     const updated = (await response.json()) as ConversationSummary;
     setConversations((items) =>
       items.map((item) => (item.id === updated.id ? updated : item)),
@@ -561,10 +560,10 @@ export function ChatWorkspace() {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ status: "active" }),
     });
-    if (!response.ok) { notify("恢复会话失败，请稍后重试。", "error"); return; }
+    if (!response.ok) { notify(t(locale, "restoreFailed"), "error"); return; }
     const updated = (await response.json()) as ConversationSummary;
     setConversations((items) => items.map((item) => item.id === updated.id ? updated : item));
-    setShowArchived(false); setConversationId(updated.id); notify("会话已恢复。", "success");
+    setShowArchived(false); setConversationId(updated.id); notify(t(locale, "chatRestored"), "success");
   }
   async function togglePinnedConversation(conversation: ConversationSummary) {
     const response = await fetch(`/api/conversations/${conversation.id}`, {
@@ -572,15 +571,15 @@ export function ChatWorkspace() {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ pinned: !conversation.pinnedAt }),
     });
-    if (!response.ok) { notify("更新置顶状态失败，请稍后重试。", "error"); return; }
+    if (!response.ok) { notify(t(locale, "pinUpdateFailed"), "error"); return; }
     const updated = (await response.json()) as ConversationSummary;
     setConversations((items) => [...items.map((item) => item.id === updated.id ? updated : item)].sort((left, right) => (Number(Boolean(right.pinnedAt)) - Number(Boolean(left.pinnedAt))) || right.updatedAt - left.updatedAt));
-    notify(updated.pinnedAt ? "会话已置顶。" : "已取消置顶。", "success");
+    notify(updated.pinnedAt ? t(locale, "chatPinned") : t(locale, "chatUnpinned"), "success");
   }
   async function deleteConversation() {
     const conversation = deleteConfirmConversation; if (!conversation) return;
     const response = await fetch(`/api/conversations/${conversation.id}`, { method: "DELETE" });
-    if (!response.ok) { notify("删除会话失败，请稍后重试。", "error"); return; }
+    if (!response.ok) { notify(t(locale, "deleteFailed"), "error"); return; }
     const remaining = conversations.filter((item) => item.id !== conversation.id);
     setConversations(remaining);
     if (conversation.id === conversationId) {
@@ -588,7 +587,7 @@ export function ChatWorkspace() {
       setConversationId(next?.id); setMessages([]);
     }
     setDeleteConfirmConversation(null);
-    notify("会话已从 RelayDesk 列表删除。", "success");
+    notify(t(locale, "chatDeleted"), "success");
   }
   function toggleArchived() {
     const next = !showArchived;
@@ -646,11 +645,11 @@ export function ChatWorkspace() {
         {visibleConversations.length ? (
           visibleConversations.map((conversation) => (
             <article className={conversation.id === conversationId ? "conversation-row active" : "conversation-row"} key={conversation.id}>
-              <button className="conversation-row-select" onClick={() => setConversationId(conversation.id)} aria-label={`打开会话：${conversation.title}`}>
-                <span>{conversation.pinnedAt ? <Pin size={12} aria-label="已置顶" /> : null}{conversation.title}</span>
+              <button className="conversation-row-select" onClick={() => setConversationId(conversation.id)} aria-label={`${t(locale, "currentChat")}: ${conversation.title}`}>
+                <span>{conversation.pinnedAt ? <Pin size={12} aria-label={t(locale, "pin")} /> : null}{conversation.title}</span>
                 <small>{new Date(conversation.updatedAt).toLocaleDateString(locale)}</small>
               </button>
-              <div className="conversation-row-actions" aria-label={`${conversation.title} 操作`}>
+              <div className="conversation-row-actions" aria-label={`${conversation.title} ${t(locale, "chatActions")}`}>
                 <button className="conversation-row-action" onClick={(event) => { event.stopPropagation(); void togglePinnedConversation(conversation); }} aria-label={conversation.pinnedAt ? t(locale, "unpin") : t(locale, "pin")} title={conversation.pinnedAt ? t(locale, "unpin") : t(locale, "pin")} data-tooltip={conversation.pinnedAt ? t(locale, "unpin") : t(locale, "pin")}>{conversation.pinnedAt ? <PinOff size={14} /> : <Pin size={14} />}</button>
                 <button className="conversation-row-action" onClick={(event) => { event.stopPropagation(); void (conversation.status === "archived" ? restoreConversationFromList(conversation) : archiveConversationFromList(conversation)); }} aria-label={conversation.status === "archived" ? t(locale, "restore") : t(locale, "archive")} title={conversation.status === "archived" ? t(locale, "restore") : t(locale, "archive")} data-tooltip={conversation.status === "archived" ? t(locale, "restore") : t(locale, "archive")}>{conversation.status === "archived" ? <RotateCcw size={14} /> : <Archive size={14} />}</button>
                 <button className="conversation-row-action danger" onClick={(event) => { event.stopPropagation(); setDeleteConfirmConversation(conversation); }} aria-label={t(locale, "delete")} title={t(locale, "delete")} data-tooltip={t(locale, "delete")}><Trash2 size={14} /></button>
@@ -669,7 +668,7 @@ export function ChatWorkspace() {
               ? t(locale, "loadingAgents")
               : agents.length
                 ? t(locale, "createFirstChat")
-                : "暂无 Agent 授权"}
+                : t(locale, "noAuthorizedAgent")}
           </button>
         )}
       </aside>
@@ -774,12 +773,12 @@ export function ChatWorkspace() {
                             <span>{tool.name}</span>
                             <small>
                               {tool.status === "running"
-                                ? "运行中"
+                                ? t(locale, "running")
                                 : tool.isError
-                                  ? "失败"
+                                  ? t(locale, "toolFailed")
                                   : tool.duration
                                     ? `${tool.duration.toFixed(1)}s`
-                                    : "已完成"}
+                                    : t(locale, "toolCompleted")}
                             </small>
                             <ChevronDown size={13} />
                           </summary>
@@ -816,7 +815,7 @@ export function ChatWorkspace() {
                       </ReactMarkdown>
                     </div>
                   ) : (
-                    <p>{message.contentText || "正在发送…"}</p>
+                    <p>{message.contentText || t(locale, "sending")}</p>
                   )}
                   {message.assets.length ? (
                     <div className="message-assets">
@@ -829,7 +828,7 @@ export function ChatWorkspace() {
                           >
                             <img
                               src={`/api/assets/${asset.id}`}
-                              alt={asset.originalName ?? "图片附件"}
+                              alt={asset.originalName ?? t(locale, "imageAttachment")}
                             />
                           </button>
                         ) : (
@@ -838,7 +837,7 @@ export function ChatWorkspace() {
                             onClick={() => void openPreview(asset)}
                           >
                             <Paperclip size={13} />
-                            {asset.originalName ?? "附件"}
+                            {asset.originalName ?? t(locale, "attachment")}
                           </button>
                         ),
                       )}
@@ -852,7 +851,7 @@ export function ChatWorkspace() {
                       onClick={() => prepareRetry(index)}
                     >
                       <RotateCcw size={13} />
-                      重新发送
+                      {t(locale, "retrySend")}
                     </button>
                   ) : null}
                 </div>
@@ -877,7 +876,7 @@ export function ChatWorkspace() {
                 ? t(locale, "loadingAgents")
                 : agents.length
                   ? t(locale, "newConversation")
-                  : "暂无 Agent 授权"}
+                  : t(locale, "noAuthorizedAgent")}
             </button>
           </div>
         )}
@@ -887,7 +886,7 @@ export function ChatWorkspace() {
               <div className="attachment-chips">
                 {attachments.map((asset) => (
                   <span key={asset.id}>
-                    {asset.originalName ?? "附件"}
+                    {asset.originalName ?? t(locale, "attachment")}
                     <button
                       type="button"
                       onClick={() =>
@@ -928,13 +927,13 @@ export function ChatWorkspace() {
             }
             aria-label={
               canUploadToActiveAgent
-                ? "添加附件"
-                : "当前 Hermes 连接暂不支持附件"
+                ? t(locale, "addAttachment")
+                : t(locale, "attachmentsUnsupported")
             }
             title={
               canUploadToActiveAgent
-                ? "添加附件"
-                : "当前 Hermes 连接暂不支持附件转发"
+                ? t(locale, "addAttachment")
+                : t(locale, "attachmentForwardUnsupported")
             }
           >
             <Paperclip size={18} />
@@ -952,12 +951,12 @@ export function ChatWorkspace() {
             />
           </label>
           {running ? (
-            <button type="button" aria-label="停止运行" onClick={stopRun}>
+            <button type="button" aria-label={t(locale, "stopRun")} onClick={stopRun}>
               <Square size={16} />
             </button>
           ) : null}
           <button
-            aria-label="发送消息"
+            aria-label={t(locale, "sendMessage")}
             className="send-button"
             disabled={
               !conversationId ||
@@ -980,13 +979,13 @@ export function ChatWorkspace() {
           className="asset-lightbox"
           role="dialog"
           aria-modal="true"
-          aria-label="文件预览"
+          aria-label={t(locale, "filePreview")}
           onClick={() => setPreviewAsset(null)}
         >
           <section onClick={(event) => event.stopPropagation()}>
             <header>
               <div>
-                <strong>{previewAsset.originalName ?? "附件"}</strong>
+                <strong>{previewAsset.originalName ?? t(locale, "attachment")}</strong>
                 <small>
                   {previewAsset.mimeType} ·{" "}
                   {(previewAsset.sizeBytes / 1024).toFixed(1)} KB
@@ -995,10 +994,10 @@ export function ChatWorkspace() {
               <div>
                 <a href={`/api/assets/${previewAsset.id}`} download>
                   <Download size={16} />
-                  下载
+                  {t(locale, "download")}
                 </a>
                 <button
-                  aria-label="关闭预览"
+                  aria-label={t(locale, "closePreview")}
                   onClick={() => setPreviewAsset(null)}
                 >
                   <X size={18} />
@@ -1008,16 +1007,16 @@ export function ChatWorkspace() {
             {previewAsset.assetType === "image" ? (
               <img
                 src={`/api/assets/${previewAsset.id}`}
-                alt={previewAsset.originalName ?? "图片预览"}
+                alt={previewAsset.originalName ?? t(locale, "imagePreview")}
               />
             ) : previewAsset.mimeType.startsWith("text/") ? (
               <pre className="asset-text-preview">
-                {previewText || "正在加载文件内容…"}
+                {previewText || t(locale, "loadingFile")}
               </pre>
             ) : previewAsset.mimeType === "application/pdf" ? (
               <iframe
                 src={`/api/assets/${previewAsset.id}`}
-                title={previewAsset.originalName ?? "文件预览"}
+                title={previewAsset.originalName ?? t(locale, "filePreview")}
               />
             ) : previewAsset.mimeType.startsWith("audio/") ? (
               <audio controls src={`/api/assets/${previewAsset.id}`} />
@@ -1026,17 +1025,17 @@ export function ChatWorkspace() {
             ) : (
               <div className="asset-no-preview">
                 <FileText size={36} />
-                <strong>此文件类型暂不支持浏览器内预览</strong>
-                <p>文件已安全归档，可下载后使用本机应用打开。</p>
+                <strong>{t(locale, "previewUnavailable")}</strong>
+                <p>{t(locale, "previewUnavailableDescription")}</p>
               </div>
             )}
           </section>
         </div>
       ) : null}
-      <TextPromptDialog open={renameDialogOpen} title="重命名会话" description="会话历史和关联资产不会受到影响。" value={renameTitle} onChange={setRenameTitle} onConfirm={() => void renameConversation()} onCancel={() => setRenameDialogOpen(false)} />
-      <ConfirmDialog open={archiveConfirmOpen} title="归档当前会话" description={`归档“${active?.title ?? "当前会话"}”后，仍可在历史记录中恢复。`} confirmLabel="确认归档" onConfirm={() => void archiveConversation()} onCancel={() => setArchiveConfirmOpen(false)} />
-      <ConfirmDialog open={Boolean(deleteConfirmConversation)} title="从 RelayDesk 删除会话" description={`“${deleteConfirmConversation?.title ?? "此会话"}”将从你的 RelayDesk 列表隐藏。Hermes 原始会话与已归档资产不会被删除。`} confirmLabel="确认删除" destructive onConfirm={() => void deleteConversation()} onCancel={() => setDeleteConfirmConversation(null)} />
-      {reminderDialogOpen ? <div className="confirm-backdrop"><form className="confirm-dialog reminder-dialog" onSubmit={createReminder}><header><span><Clock3 size={20} /></span><div><h2>创建 Hermes 定时任务</h2><p>完成结果会自动回到当前私聊。</p></div><button type="button" aria-label="关闭窗口" onClick={() => setReminderDialogOpen(false)}><X size={18} /></button></header><label className="dialog-field">任务名称<input name="name" autoFocus required placeholder="例如：晚餐提醒" /></label><label className="dialog-field">Cron 时间<input name="schedule" required placeholder="例如：38 20 * * *" /></label><label className="dialog-field">提醒内容<textarea name="prompt" required placeholder="例如：提醒我去吃饭。" /></label><footer><button type="button" className="secondary-button" onClick={() => setReminderDialogOpen(false)}>取消</button><button className="primary-button" disabled={reminderBusy}>{reminderBusy ? "正在创建" : "创建任务"}</button></footer></form></div> : null}
+      <TextPromptDialog open={renameDialogOpen} title={t(locale, "renameChatTitle")} description={t(locale, "renameChatDescription")} value={renameTitle} onChange={setRenameTitle} onConfirm={() => void renameConversation()} onCancel={() => setRenameDialogOpen(false)} />
+      <ConfirmDialog open={archiveConfirmOpen} title={t(locale, "archiveChatTitle")} description={t(locale, "archiveChatDescription")} confirmLabel={t(locale, "confirmArchive")} onConfirm={() => void archiveConversation()} onCancel={() => setArchiveConfirmOpen(false)} />
+      <ConfirmDialog open={Boolean(deleteConfirmConversation)} title={t(locale, "deleteChatTitle")} description={t(locale, "deleteChatDescription")} confirmLabel={t(locale, "confirmDelete")} destructive onConfirm={() => void deleteConversation()} onCancel={() => setDeleteConfirmConversation(null)} />
+      {reminderDialogOpen ? <div className="confirm-backdrop"><form className="confirm-dialog reminder-dialog" onSubmit={createReminder}><header><span><Clock3 size={20} /></span><div><h2>{t(locale, "reminderTitle")}</h2><p>{t(locale, "reminderDescription")}</p></div><button type="button" aria-label={t(locale, "closeWindow")} onClick={() => setReminderDialogOpen(false)}><X size={18} /></button></header><label className="dialog-field">{t(locale, "reminderName")}<input name="name" autoFocus required placeholder={t(locale, "reminderNamePlaceholder")} /></label><label className="dialog-field">{t(locale, "cronSchedule")}<input name="schedule" required placeholder={t(locale, "cronSchedulePlaceholder")} /></label><label className="dialog-field">{t(locale, "reminderPrompt")}<textarea name="prompt" required placeholder={t(locale, "reminderPromptPlaceholder")} /></label><footer><button type="button" className="secondary-button" onClick={() => setReminderDialogOpen(false)}>{t(locale, "cancel")}</button><button className="primary-button" disabled={reminderBusy}>{reminderBusy ? t(locale, "creating") : t(locale, "createTask")}</button></footer></form></div> : null}
     </section>
   );
 }

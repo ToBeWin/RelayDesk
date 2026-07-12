@@ -86,6 +86,12 @@ test("operator can chat, persist history, and manage private chat sessions", asy
   await composer.fill("生成一条 RelayDesk E2E 验收内容");
   await composer.press("Enter");
   await expect(page.getByText("Mock Runtime 已收到：生成一条 RelayDesk E2E 验收内容")).toBeVisible();
+  await page.getByRole("button", { name: "Switch to English" }).click();
+  await page.getByLabel("Chat actions").getByRole("button", { name: "Archive chat" }).click();
+  await expect(page.getByRole("alertdialog")).toContainText("Archive current chat");
+  await expect.poll(() => page.getByRole("alertdialog").innerText()).not.toMatch(/[\u4e00-\u9fff]/);
+  await page.getByRole("alertdialog").getByRole("button", { name: "Cancel" }).click();
+  await page.getByRole("button", { name: "Switch to Chinese" }).click();
   if (process.env.RELAYDESK_CAPTURE_README === "1") {
     await page.screenshot({ path: "docs/images/chat-zh.png", fullPage: true });
     await page.getByRole("button", { name: "Switch to English" }).click();

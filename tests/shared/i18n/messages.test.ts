@@ -13,8 +13,12 @@ describe("system messages", () => {
     expect(Object.values(systemMessages.en).join(" ")).not.toMatch(/[\u4e00-\u9fff]/);
   });
 
-  it("keeps core client pages free of inline Chinese system copy", () => {
-    for (const source of ["src/app/(workspace)/members/page.tsx"]) {
+  it("keeps core client pages and dialogs free of inline Chinese system copy", () => {
+    for (const source of [
+      "src/app/(workspace)/members/page.tsx",
+      "src/modules/conversations/chat-workspace.tsx",
+      "src/shared/components/confirm-dialog.tsx",
+    ]) {
       expect(readFileSync(path.join(process.cwd(), source), "utf8")).not.toMatch(/[\u4e00-\u9fff]/);
     }
   });
@@ -22,5 +26,6 @@ describe("system messages", () => {
   it("formats known runtime failures without leaking Chinese into English UI", () => {
     expect(formatSystemError("en", "SESSION_NOT_FOUND")).toBe("Hermes could not find this chat. Your RelayDesk history has been kept.");
     expect(formatSystemError("zh-CN", "SESSION_NOT_FOUND")).toBe("Hermes 中未找到这个会话；RelayDesk 本地历史已保留。");
+    expect(formatSystemError("en", "UNKNOWN_RUNTIME_ERROR", "运行时发生未知错误")).toBe("Hermes could not complete this request. Please try again later.");
   });
 });
