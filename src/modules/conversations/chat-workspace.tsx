@@ -96,7 +96,6 @@ export function ChatWorkspace() {
   const draftContextRef = useRef<string | undefined>(undefined);
   const { notify } = useToast();
   const { locale } = useLocale();
-  const l = (zh: string, en: string) => (locale === "zh-CN" ? zh : en);
   const newConversationRequestedRef = useRef(false);
   const onNewConversationRequested = useEffectEvent(() => {
     void createConversation();
@@ -300,13 +299,13 @@ export function ChatWorkspace() {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
-        title: l("新会话", "New chat"),
+        title: t(locale, "newChat"),
         runtimeConnectionId: agentId,
       }),
     });
     if (!response.ok) {
       const result = await response.json().catch(() => null) as { message?: string } | null;
-      const message = result?.message ?? "新建会话失败，请重试";
+      const message = result?.message ?? t(locale, "createChatFailed");
       setError(message);
       notify(message, "error");
       return;
@@ -335,14 +334,14 @@ export function ChatWorkspace() {
       body: file,
     });
     const asset = await response.json();
-    if (!response.ok) return setError(asset.message ?? "附件上传失败");
+    if (!response.ok) return setError(asset.message ?? t(locale, "uploadFailed"));
     setAttachments((items) => [...items, asset]);
   }
   async function uploadAttachments(files: FileList) {
     const selected = agents.find((agent) => agent.id === (active?.runtimeConnectionId ?? selectedAgentId));
     for (const file of Array.from(files).slice(0, 10)) {
       if (selected?.attachmentSupport === "images_only" && !file.type.startsWith("image/")) {
-        const message = "当前远程 Agent 仅支持图片附件；文档需要与 RelayDesk 同机或配置共享目录。";
+        const message = t(locale, "remoteImagesOnly");
         setError(message); notify(message, "info"); continue;
       }
       await uploadAttachment(file);
@@ -354,7 +353,7 @@ export function ChatWorkspace() {
     if (asset.mimeType.startsWith("text/")) {
       const response = await fetch(`/api/assets/${asset.id}`);
       setPreviewText(
-        response.ok ? await response.text() : "文件内容加载失败。",
+        response.ok ? await response.text() : t(locale, "fileLoadFailed"),
       );
     }
   }
@@ -468,13 +467,13 @@ export function ChatWorkspace() {
               ),
             );
           if (item.type === "run.failed")
-            setError("运行时中断，已保留已接收内容。");
+            setError(t(locale, "runInterrupted"));
         }
       }
       await loadMessages(conversationId);
       await loadConversations();
     } catch {
-      const message = "消息发送失败；已保留输入与附件，请检查 Hermes 状态后重试。";
+      const message = t(locale, "sendFailed");
       setError(message);
       notify(message, "error");
     } finally {
@@ -488,8 +487,8 @@ export function ChatWorkspace() {
     });
     setError(
       response.ok
-        ? "已请求停止 Runtime 任务，正在保留已接收内容。"
-        : "当前任务无法停止，可能已经结束。",
+        ? t(locale, "stopRequested")
+        : t(locale, "stopUnavailable"),
     );
   }
   async function renameConversation() {
@@ -501,13 +500,13 @@ export function ChatWorkspace() {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ title }),
     });
-    if (!response.ok) { setError("重命名会话失败。"); notify("重命名会话失败，请稍后重试。", "error"); return; }
+    if (!response.ok) { setError(t(locale, "renameFailed")); notify(t(locale, "renameFailed"), "error"); return; }
     const updated = (await response.json()) as ConversationSummary;
     setConversations((items) =>
       items.map((item) => (item.id === updated.id ? updated : item)),
     );
     setRenameDialogOpen(false);
-    notify("会话名称已更新。", "success");
+    notify(t(locale, "chatRenamed"), "success");
   }
   async function archiveConversation() {
     if (!active) return;
@@ -516,7 +515,7 @@ export function ChatWorkspace() {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ status: "archived" }),
     });
-    if (!response.ok) { setError("归档会话失败。"); notify("归档会话失败，请稍后重试。", "error"); return; }
+    if (!response.ok) { setError(t(locale, "archiveFailed")); notify(t(locale, "archiveFailed"), "error"); return; }
     const updated = (await response.json()) as ConversationSummary;
     setConversations((items) =>
       items.map((item) => (item.id === updated.id ? updated : item)),
@@ -524,7 +523,7 @@ export function ChatWorkspace() {
     setShowArchived(true);
     setConversationId(updated.id);
     setArchiveConfirmOpen(false);
-    notify("会话已归档。", "success");
+    notify(t(locale, "chatArchived"), "success");
   }
   async function archiveConversationFromList(conversation: ConversationSummary) {
     const response = await fetch(`/api/conversations/${conversation.id}`, {
@@ -623,7 +622,7 @@ export function ChatWorkspace() {
 
   return (
     <section className={`chat-layout chat-live chat-core-layout${conversationRailCollapsed ? " conversation-rail-collapsed" : ""}`}>
-      {conversationRailCollapsed ? <button className="chat-panel-restore conversation-panel-restore" onClick={toggleConversationRail} aria-label={l("展开对话列表", "Expand chat list")} title={l("展开对话列表", "Expand chat list")} data-tooltip={l("展开对话列表", "Expand chat list")}><ChevronRight size={16} strokeWidth={2.25} /></button> : null}
+      {conversationRailCollapsed ? <button className="chat-panel-restore conversation-panel-restore" onClick={toggleConversationRail} aria-label={t(locale, "expandChatList")} title={t(locale, "expandChatList")} data-tooltip={t(locale, "expandChatList")}><ChevronRight size={16} strokeWidth={2.25} /></button> : null}
       <button className="archive-toggle-overlay" onClick={toggleArchived}>
         {showArchived ? t(locale, "returnToCurrent") : t(locale, "viewArchive")}
       </button>
@@ -634,7 +633,7 @@ export function ChatWorkspace() {
           </button>
           <div className="rail-heading-actions">
             <button onClick={() => void createConversation()} aria-label={t(locale, "newConversation")} disabled={agentsLoading || !agents.length || showArchived} title={t(locale, "newConversation")}><Plus size={16} /></button>
-            <button onClick={toggleConversationRail} aria-label={l("折叠对话列表", "Collapse chat list")} title={l("折叠对话列表", "Collapse chat list")}><ChevronLeft size={16} strokeWidth={2.25} /></button>
+            <button onClick={toggleConversationRail} aria-label={t(locale, "collapseChatList")} title={t(locale, "collapseChatList")}><ChevronLeft size={16} strokeWidth={2.25} /></button>
           </div>
         </div>
         <input
@@ -659,7 +658,7 @@ export function ChatWorkspace() {
             </article>
           ))
         ) : showArchived ? (
-          <p className="conversation-empty">{l("暂无归档会话", "No archived chats")}</p>
+          <p className="conversation-empty">{t(locale, "noArchivedChats")}</p>
         ) : (
           <button
             className="conversation-empty"
@@ -667,7 +666,7 @@ export function ChatWorkspace() {
             disabled={agentsLoading || !agents.length}
           >
             {agentsLoading
-              ? l("正在加载 Agent…", "Loading Agents…")
+              ? t(locale, "loadingAgents")
               : agents.length
                 ? t(locale, "createFirstChat")
                 : "暂无 Agent 授权"}
@@ -690,22 +689,22 @@ export function ChatWorkspace() {
           <div className="chat-header-actions">
             {active ? (
               active.status === "archived" ? (
-                <button className="header-text-button" onClick={restoreConversation}>{l("恢复并继续", "Restore and continue")}</button>
+                <button className="header-text-button" onClick={restoreConversation}>{t(locale, "restoreAndContinue")}</button>
               ) : (
-                <div className="session-action-group" aria-label={l("会话操作", "Chat actions")}>
+                <div className="session-action-group" aria-label={t(locale, "chatActions")}>
                   <button
                     className="toolbar-icon-button"
                     onClick={() => void loadAndSync(active.id)}
                     disabled={syncing}
-                    aria-label={syncing ? l("正在同步会话", "Syncing chat") : l("同步会话", "Sync chat")}
-                    title={syncing ? l("正在同步会话", "Syncing chat") : l("同步会话", "Sync chat")}
-                    data-tooltip={syncing ? l("正在同步会话", "Syncing chat") : l("同步会话", "Sync chat")}
+                    aria-label={syncing ? t(locale, "syncingChat") : t(locale, "syncChat")}
+                    title={syncing ? t(locale, "syncingChat") : t(locale, "syncChat")}
+                    data-tooltip={syncing ? t(locale, "syncingChat") : t(locale, "syncChat")}
                   >
                     <RefreshCw className={syncing ? "is-spinning" : undefined} size={16} />
                   </button>
-                  <button className="toolbar-icon-button" onClick={() => { setRenameTitle(active.title); setRenameDialogOpen(true); }} aria-label={l("重命名会话", "Rename chat")} title={l("重命名会话", "Rename chat")} data-tooltip={l("重命名会话", "Rename chat")}><PencilLine size={16} /></button>
-                  <button className="toolbar-icon-button" onClick={() => setReminderDialogOpen(true)} aria-label={l("创建定时任务", "Create scheduled task")} title={l("创建定时任务", "Create scheduled task")} data-tooltip={l("创建定时任务", "Create scheduled task")}><Clock3 size={16} /></button>
-                  <button className="toolbar-icon-button danger" onClick={() => setArchiveConfirmOpen(true)} aria-label={l("归档会话", "Archive chat")} title={l("归档会话", "Archive chat")} data-tooltip={l("归档会话", "Archive chat")}><Archive size={16} /></button>
+                  <button className="toolbar-icon-button" onClick={() => { setRenameTitle(active.title); setRenameDialogOpen(true); }} aria-label={t(locale, "renameChat")} title={t(locale, "renameChat")} data-tooltip={t(locale, "renameChat")}><PencilLine size={16} /></button>
+                  <button className="toolbar-icon-button" onClick={() => setReminderDialogOpen(true)} aria-label={t(locale, "createScheduledTask")} title={t(locale, "createScheduledTask")} data-tooltip={t(locale, "createScheduledTask")}><Clock3 size={16} /></button>
+                  <button className="toolbar-icon-button danger" onClick={() => setArchiveConfirmOpen(true)} aria-label={t(locale, "archiveChat")} title={t(locale, "archiveChat")} data-tooltip={t(locale, "archiveChat")}><Archive size={16} /></button>
                 </div>
               )
             ) : null}
@@ -728,7 +727,7 @@ export function ChatWorkspace() {
             ) : null}
             <span className="runtime-status">
               <i />
-            <span>{runtimeName}{activeAgent?.attachmentSupport === "images_only" ? ` · ${l("仅图片附件", "Images only")}` : ""}</span>
+            <span>{runtimeName}{activeAgent?.attachmentSupport === "images_only" ? ` · ${t(locale, "imagesOnly")}` : ""}</span>
             </span>
           </div>
         </header>
@@ -737,14 +736,14 @@ export function ChatWorkspace() {
             {messages.map((message, index) => (
               <article key={message.id} className={`message ${message.role}`}>
                 <span className="message-avatar">
-                  {message.role === "assistant" ? <Bot size={16} /> : l("你", "You")}
+                  {message.role === "assistant" ? <Bot size={16} /> : t(locale, "you")}
                 </span>
                 <div className="message-body">
                   <div className="message-meta">
                     <span>
                       {message.role === "assistant"
                         ? "Hermes Agent"
-                        : message.operatorName || l("操作者", "Operator")}
+                        : message.operatorName || t(locale, "operator")}
                     </span>
                     <time>
                       {new Date(message.createdAt).toLocaleTimeString(locale, {
@@ -755,14 +754,14 @@ export function ChatWorkspace() {
                     {message.status === "streaming" ? (
                       <>
                         <LoaderCircle className="spin" size={14} />
-                        <small>{l("运行中", "Running")}</small>
+                        <small>{t(locale, "running")}</small>
                       </>
                     ) : message.status === "interrupted" ||
                       message.status === "failed" ? (
-                      <small className="message-failed">{l("连接已中断", "Connection interrupted")}</small>
+                      <small className="message-failed">{t(locale, "connectionInterrupted")}</small>
                     ) : (
                       <small>
-                        {message.status === "pending" ? l("发送中", "Sending") : l("已同步", "Synced")}
+                        {message.status === "pending" ? t(locale, "sending") : t(locale, "synced")}
                       </small>
                     )}
                   </div>
@@ -812,7 +811,7 @@ export function ChatWorkspace() {
                     <div className="message-markdown">
                       <ReactMarkdown rehypePlugins={[rehypeSanitize]}>
                         {redactSensitiveDisplayText(
-                          message.contentText || l("正在思考…", "Thinking…"),
+                          message.contentText || t(locale, "thinking"),
                         )}
                       </ReactMarkdown>
                     </div>
@@ -865,9 +864,9 @@ export function ChatWorkspace() {
             <span className="agent-icon">
               <Bot size={24} />
             </span>
-            <h2>{l("从一个明确的内容目标开始", "Start with a clear goal")}</h2>
+            <h2>{t(locale, "emptyChatTitle")}</h2>
             <p>
-              {l("选择账号、描述需求，RelayDesk 会将整个对话过程沉淀为可管理的工作成果。", "Choose an account and describe the work. RelayDesk turns the conversation into organized, reusable work.")}
+              {t(locale, "emptyChatDescription")}
             </p>
             <button
               className="primary-button"
@@ -875,7 +874,7 @@ export function ChatWorkspace() {
               disabled={agentsLoading || !agents.length}
             >
               {agentsLoading
-                ? l("正在加载 Agent…", "Loading Agents…")
+                ? t(locale, "loadingAgents")
                 : agents.length
                   ? t(locale, "newConversation")
                   : "暂无 Agent 授权"}
@@ -904,16 +903,16 @@ export function ChatWorkspace() {
               </div>
             ) : null}
             <textarea
-              aria-label={l("消息内容", "Message content")}
+              aria-label={t(locale, "messageContent")}
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
               onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) void send(event); }}
               placeholder={
                 active?.status === "archived"
-                  ? l("请先恢复会话再继续", "Restore this chat before continuing")
+                  ? t(locale, "restoreBeforeContinue")
                   : conversationId
                     ? t(locale, "messagePlaceholder")
-                    : l("请先创建会话", "Create a chat first")
+                    : t(locale, "createChatFirst")
               }
               rows={2}
               disabled={
